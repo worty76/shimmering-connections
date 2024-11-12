@@ -15,8 +15,8 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const login = () => {
-  const [email, setEmail] = useState("rahulshanisare@newrise.in");
-  const [password, setPassword] = useState("12345678");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
 
   // check login status
