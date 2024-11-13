@@ -25,5 +25,4 @@ router.delete(
   productController.deletePost
 );
 
-// Lu' @@
 module.exports = router;
