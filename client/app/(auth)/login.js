@@ -13,6 +13,7 @@ import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../../constants/api";
 
 const login = () => {
   const [email, setEmail] = useState("");
@@ -34,6 +35,30 @@ const login = () => {
   //   checkStatus();
   // }, []);
 
+  const handleLogin = () => {
+    const user = {
+      email: email,
+      password: password,
+    };
+    axios
+      .post(api.API_URL + "/api/auth/login", user)
+      .then((res) => {
+        if (res.status !== 200) {
+          alert("Error logging in");
+          return;
+        } else {
+          const token = res.data.token;
+          AsyncStorage.setItem("token", token);
+          setEmail("");
+          setPassword("");
+          router.replace("/(auth)/select");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("catch Error logging in");
+      });
+  };
   return (
     <SafeAreaView
       style={{
@@ -215,6 +240,7 @@ const login = () => {
                 marginRight: "auto",
                 padding: 15,
               }}
+              onPress={handleLogin}
             >
               <Text
                 style={{
