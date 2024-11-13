@@ -21,7 +21,7 @@ const select = () => {
 
   const onPressHandler = async () => {
     try {
-      const baseUrl = api.API_URL + `/users/${userId}/gender`;
+      const baseUrl = api.API_URL + `/api/auth/${userId}/gender`;
       const res = await axios.put(baseUrl, { gender: option });
       if (res.status !== 200) {
         alert("Error updating");
