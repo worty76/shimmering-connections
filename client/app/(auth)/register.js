@@ -13,6 +13,7 @@ import React, { useState } from "react";
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import axios from "axios";
+import api from "../../constants/api";
 
 const register = () => {
   const [email, setEmail] = useState("");
@@ -20,32 +21,34 @@ const register = () => {
   const [name, setName] = useState("");
   const router = useRouter();
 
-  // const handleRegister = () => {
-  //   const user = {
-  //     email: email,
-  //     password: password,
-  //     name: name,
-  //   };
-  //   axios
-  //     .post(Constant.API_URL + "register", user)
-  //     .then((res) => {
-  //       console.log(res);
-  //       if (res.status !== 200) {
-  //         alert("Error registering user");
-  //         return;
-  //       } else {
-  //         setEmail("");
-  //         setPassword("");
-  //         setName("");
-  //         alert("User registered successfully");
-  //         router.replace("/login");
-  //       }
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //       alert("Error registering user", err);
-  //     });
-  // };
+  const handleRegister = () => {
+    const user = {
+      email: email,
+      password: password,
+      name: name,
+    };
+    console.log(user);
+    axios
+      .post(`${api.API_URL}/api/auth/register`, user)
+      .then((res) => {
+        console.log(res.response);
+        if (res.status !== 200) {
+          console.log(res);
+          alert("Error registering user");
+          return;
+        } else {
+          setEmail("");
+          setPassword("");
+          setName("");
+          alert("User registered successfully");
+          router.replace("/login");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("Error registering user", err);
+      });
+  };
 
   return (
     <SafeAreaView
@@ -239,6 +242,7 @@ const register = () => {
                   marginRight: "auto",
                   padding: 15,
                 }}
+                onPress={handleRegister}
               >
                 <Text
                   style={{
