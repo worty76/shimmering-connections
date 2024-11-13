@@ -7,6 +7,7 @@ const path = require("path");
 require("dotenv").config();
 
 const userRouter = require("./src/routers/userRouter");
+const authRouter = require("./src/routers/authRouter");
 const productRouter = require("./src/routers/productRouter");
 
 var corsOptions = {
@@ -32,6 +33,7 @@ mongoose
   })
   .catch((err) => console.log(err));
 
+app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 

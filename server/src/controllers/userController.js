@@ -2,48 +2,17 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const register = async (req, res) => {
-  const user = await User.findOne({ username: req.body.username });
-
-  // Im not gonna encrypt password. maybe later after i done crud
-  console.log(user);
-
-  if (user) {
-    return res.status(400).json({ message: "This username is already exist" });
+const getUserData = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).send({ message: "User not found" });
+    res.status(200).send({ message: "User found", user });
+  } catch (error) {
+    res.status(500).send({ message: "Internal server error", error });
   }
-
-  const newUser = new User({
-    username: req.body.username,
-    password: req.body.password,
-    role: "user",
-  });
-  await newUser.save();
-
-  res
-    .status(200)
-    .json({ message: "Successfully created an user", data: newUser });
 };
 
-const login = async (req, res) => {
-  const user = await User.findOne({ username: req.body.username });
-
-  if (!user) return res.status(400).json({ message: "This user is not exist" });
-
-  var token = jwt.sign({ id: user._id }, process.env.SECRET);
-
-  const isMatchPassword = user.password === req.body.password;
-
-  if (!isMatchPassword) {
-    return res.status(400).json({ message: "Passwords dont match" });
-  }
-
-  res.send({
-    message: "Successfully logged in",
-    user: user,
-    token: token,
-  });
-};
-
-const userController = { register, login };
+const userController = { getUserData };
 
 module.exports = userController;
