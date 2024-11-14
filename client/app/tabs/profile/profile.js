@@ -1,12 +1,12 @@
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import React, { useState, useEffect, useId } from "react";
+import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import constants from "../../../constants/api";
 import Profile from "./components/Profile";
 
-const index = () => {
+const profile = () => {
   const [userId, setUserId] = useState("");
   const [user, setUser] = useState();
   const [profile, setProfile] = useState([]);
@@ -22,10 +22,12 @@ const index = () => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const res = await axios.get(constants.API_URL + `users/${userId}`);
+        const res = await axios.get(
+          `${constants.API_URL}/api/user/profile/${userId}`
+        );
         setUser(res?.data?.user);
       } catch (error) {
-        console.error("error", error);
+        console.error("Interval Error Server", error);
       }
     };
 
@@ -35,7 +37,7 @@ const index = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const url = constants.API_URL + `profiles/`;
+        const url = `${constants.API_URL}/api/user/profiles/`;
         const params = {
           userId: userId,
           gender: user?.gender,
@@ -45,7 +47,7 @@ const index = () => {
         const res = await axios.get(url, { params });
         setProfile(res?.data?.data);
       } catch (error) {
-        console.error("error", error);
+        console.error("Interval Error Server", error);
       }
     };
     if (user && userId) fetchProfile();
@@ -85,6 +87,6 @@ const index = () => {
   );
 };
 
-export default index;
+export default profile;
 
 const styles = StyleSheet.create({});

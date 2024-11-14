@@ -12,6 +12,8 @@ import {
 import React, { useState } from "react";
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
+
 import axios from "axios";
 import api from "../../constants/api";
 
@@ -19,6 +21,7 @@ const register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const navigation = useNavigation();
   const router = useRouter();
 
   const handleRegister = () => {
@@ -41,7 +44,7 @@ const register = () => {
           setPassword("");
           setName("");
           alert("User registered successfully");
-          router.replace("/login");
+          navigation.navigate("auth/login");
         }
       })
       .catch((err) => {
@@ -258,7 +261,7 @@ const register = () => {
               <Pressable
                 style={{ marginTop: 12 }}
                 onPress={() => {
-                  router.replace("/login");
+                  navigation.navigate("auth/login");
                 }}
               >
                 <Text

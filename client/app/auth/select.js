@@ -27,7 +27,7 @@ const select = () => {
         alert("Error updating");
         return;
       }
-      router.replace("/(tabs)/bio");
+      router.replace("tabs/bio");
     } catch (error) {
       console.error("error", error);
     }
