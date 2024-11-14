@@ -8,7 +8,6 @@ require("dotenv").config();
 
 const userRouter = require("./src/routers/userRouter");
 const authRouter = require("./src/routers/authRouter");
-const productRouter = require("./src/routers/productRouter");
 
 var corsOptions = {
   origin: "http://localhost:8081",
@@ -35,7 +34,6 @@ mongoose
 
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
-app.use("/api/product", productRouter);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Worty's server");

@@ -11,6 +11,7 @@ import {
 import React, { useState, useEffect } from "react";
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../constants/api";
@@ -19,8 +20,8 @@ const login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const navigation = useNavigation();
 
-  // check login status
   // useEffect(() => {
   //   const checkStatus = async () => {
   //     try {
@@ -51,7 +52,7 @@ const login = () => {
           AsyncStorage.setItem("token", token);
           setEmail("");
           setPassword("");
-          router.replace("/(auth)/select");
+          navigation.navigate("auth/select");
         }
       })
       .catch((err) => {
@@ -256,7 +257,7 @@ const login = () => {
             <Pressable
               style={{ marginTop: 12 }}
               onPress={() => {
-                router.replace("/register");
+                navigation.navigate("auth/registration/BasicInfo");
               }}
             >
               <Text

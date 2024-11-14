@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import { Entypo, AntDesign } from "@expo/vector-icons";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import Carousel from "react-native-reanimated-carousel";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../../constants/api";
 import * as ImagePicker from "expo-image-picker";
@@ -18,16 +19,21 @@ import { Dimensions } from "react-native";
 import { ActivityIndicator } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 
-const index = () => {
+const screenWidth = Dimensions.get("window").width;
+
+const bio = () => {
   const [option, setOption] = useState("AD");
   const [desc, setDesc] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [userId, setUserId] = useState("");
+  const [user, setUser] = useState();
   const [turnOns, setTurnOns] = useState([]);
   const [lookingFor, setLookingFor] = useState([]);
   const [profileImages, setProfileImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
   const router = useRouter();
 
   const renderItem = ({ item }) => {
@@ -41,7 +47,7 @@ const index = () => {
         }}
       >
         <Image
-          source={{ uri: api.IMAGE_URL + item }}
+          source={{ uri: item }}
           style={{
             width: "90%",
             height: 250,
@@ -110,13 +116,27 @@ const index = () => {
   useEffect(() => {
     fetchUser();
   }, []);
+
   const fetchUser = async () => {
     const token = await AsyncStorage.getItem("token");
     const decodedToken = jwtDecode(token);
-    console.log("Called");
-    console.log(decodedToken);
     setUserId(decodedToken.userId);
   };
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const res = await axios.get(
+          `${api.API_URL}/api/user/profile/${userId}`
+        );
+        setUser(res?.data?.user);
+      } catch (error) {
+        console.error("Interval Error Server", error);
+      }
+    };
+
+    if (userId) getUser();
+  }, [userId]);
 
   const updateUserDesc = async () => {
     try {
@@ -134,7 +154,7 @@ const index = () => {
   };
   const getData = async () => {
     try {
-      const res = await axios.get(`http://localhost:8000/api/user/${userId}`);
+      const res = await axios.get(`${api.API_URL}/api/user/profile/${userId}`);
       if (res.status !== 200) {
         alert("Error fetching data");
         return;
@@ -144,6 +164,7 @@ const index = () => {
       setTurnOns(data?.turnOns);
       setLookingFor(data?.lookingFor);
       setProfileImages(data?.profileImages);
+      console.log(data);
     } catch (error) {
       console.error("error", error);
     }
@@ -315,9 +336,11 @@ const index = () => {
                 style={styles.logoStyle}
               />
               <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 6 }}>
-                Bhopal
+                {user && user.name}
               </Text>
-              <Text style={{ marginTop: 4, fontSize: 15 }}>20 years, 5'2"</Text>
+              <Text style={{ marginTop: 4, fontSize: 15 }}>
+                {user && user.email}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -418,19 +441,27 @@ const index = () => {
                 }}
               />
             ) : (
+              // <Carousel
+              //   layout={"stack"}
+              //   data={profileImages}
+              //   inverted
+              //   keyExtractor={(item) => item}
+              //   renderItem={renderItem}
+              //   ListEmptyComponent={renderEmptyComponent}
+              //   sliderWidth={350}
+              //   itemWidth={300}
+              //   onSnapToItem={(index) => setActiveIndex(index)}
+              //   layoutCardOffset={18}
+              //   autoplay
+              //   autoplayInterval={1000}
+              // />
               <Carousel
-                layout={"stack"}
+                width={screenWidth}
+                height={300}
                 data={profileImages}
-                inverted
-                keyExtractor={(item) => item}
                 renderItem={renderItem}
-                ListEmptyComponent={renderEmptyComponent}
-                sliderWidth={350}
-                itemWidth={300}
+                keyExtractor={(item, index) => index.toString()}
                 onSnapToItem={(index) => setActiveIndex(index)}
-                layoutCardOffset={18}
-                autoplay
-                autoplayInterval={1000}
               />
             )}
 
@@ -572,7 +603,7 @@ const index = () => {
         <Pressable
           onPress={async () => {
             await AsyncStorage.removeItem("token");
-            router.replace("/login");
+            navigation.navigate("auth/login");
             alert("Logged out successfully");
           }}
           style={{
@@ -599,7 +630,7 @@ const index = () => {
   );
 };
 
-export default index;
+export default bio;
 
 const styles = StyleSheet.create({
   container: {
