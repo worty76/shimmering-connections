@@ -4,28 +4,27 @@ const crypto = require("crypto");
 
 const register = async (req, res) => {
   try {
-    const { email, name, password } = req.body;
+    const userData = req.body;
+    console.log(userData);
 
-    const user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-    const newUser = new User({ email, name, password });
-
-    newUser.verificationToken = crypto.randomBytes(16).toString("hex");
+    const newUser = new User(userData);
 
     await newUser.save();
 
-    // sendVerificationEmail(newUser.email, newUser.verificationToken);
+    const secretKey = crypto.randomBytes(32).toString("hex");
 
-    return res.status(200).json({ message: "User registered successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Registration failed", err });
+    const token = jwt.sign({ userId: newUser._id }, secretKey, {
+      expiresIn: "1d",
+    });
+    res.status(201).json({ token });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 const login = async (req, res) => {
-  const secretKey = crypto.randomBytes(16).toString("hex");
+  const secretKey = crypto.randomBytes(32).toString("hex");
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
