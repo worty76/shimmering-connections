@@ -105,7 +105,7 @@ const ShowPromptScreen = () => {
     setModalVisible(false);
     if (prompts.length === 3) {
       setModalVisible(false);
-      navigation.navigate("Prompts", {
+      navigation.navigate("auth/registration/PromptScreen", {
         prompts: prompts,
       }); // Navigate away from the screen when prompts reach three
     }
