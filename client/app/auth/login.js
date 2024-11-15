@@ -4,82 +4,94 @@ import {
   View,
   SafeAreaView,
   Image,
-  KeyboardAvoidingView,
   TextInput,
   Pressable,
+  KeyboardAvoidingView,
 } from "react-native";
-import React, { useState, useEffect } from "react";
-import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import React, { useState, useEffect, useContext } from "react";
+import Entypo from "react-native-vector-icons/Entypo";
+import AntDesign from "react-native-vector-icons/AntDesign";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import LottieView from "lottie-react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import AsyncStorage, {
+  useAsyncStorage,
+} from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../../constants/api";
+import { AuthContext } from "../../context/AuthContext";
 
-const login = () => {
+const LoginScreen = () => {
   const [email, setEmail] = useState("");
+  const route = useRoute();
+  console.log(route);
   const [password, setPassword] = useState("");
-  const router = useRouter();
   const navigation = useNavigation();
+  const [option, setOption] = useState("Create account");
+  const { token, isLoading, setToken } = useContext(AuthContext);
 
-  // useEffect(() => {
-  //   const checkStatus = async () => {
-  //     try {
-  //       const token = await AsyncStorage.getItem("token");
-  //       if (token) {
-  //         router.replace("/(tabs)/bio");
-  //       }
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-  //   checkStatus();
-  // }, []);
+  console.log(token);
 
+  useEffect(() => {
+    // Check if the token is set and not in loading state
+    if (token) {
+      // Navigate to the main screen
+      navigation.navigate("MainStack", { screen: "Main" });
+    }
+  }, [token, navigation]);
+  const signInUser = async () => {
+    setOption("Sign In");
+
+    try {
+      console.log(email);
+      console.log(password);
+      const user = {
+        email: email,
+        password: password,
+      };
+      const response = await axios.post(
+        "http://localhost:8000/api/auth/login",
+        user
+      );
+      const token = response.data.token;
+
+      await AsyncStorage.setItem("token", token);
+
+      setToken(token);
+      navigation.navigate("tabs/index");
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+  const createAccount = () => {
+    setOption("Create account");
+
+    navigation.navigate("auth/registration/BasicInfo");
+  };
   const handleLogin = () => {
     const user = {
       email: email,
       password: password,
     };
     axios
-      .post(api.API_URL + "/api/auth/login", user)
-      .then((res) => {
-        if (res.status !== 200) {
-          alert("Error logging in");
-          return;
-        } else {
-          const token = res.data.token;
-          AsyncStorage.setItem("token", token);
-          setEmail("");
-          setPassword("");
-          navigation.navigate("auth/select");
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        alert("catch Error logging in");
+      .post("http://localhost:3000/api/auth/login", user)
+      .then((response) => {
+        console.log(response);
+        const token = response.data.token;
+        AsyncStorage.setItem("auth", token);
+        navigation.navigate("tabs/index");
       });
   };
   return (
     <SafeAreaView
-      style={{
-        flex: 1,
-        alignItems: "center",
-        backgroundColor: "#fff",
-        elevation: 0,
-        shadowColor: "transparent",
-        shadowOpacity: 0,
-        shadowOffset: {
-          height: 0,
-        },
-        shadowRadius: 0,
-      }}
+      style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}
     >
       <View
         style={{
           height: 200,
-          backgroundColor: "pink",
+          backgroundColor: "#581845",
           width: "100%",
+          borderBottomLeftRadius: 100,
+          borderBottomRightRadius: 100,
         }}
       >
         <View
@@ -90,44 +102,39 @@ const login = () => {
           }}
         >
           <Image
-            style={{
-              width: 150,
-              height: 80,
-              resizeMode: "contain",
-            }}
+            style={{ width: 150, height: 80, resizeMode: "contain" }}
             source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/6655/6655045.png",
+              uri: "https://cdn-icons-png.flaticon.com/128/4310/4310217.png",
             }}
           />
-          <Text
-            style={{
-              marginTop: 20,
-              textAlign: "center",
-              fontSize: 20,
-            }}
-          >
-            Match Mate
-          </Text>
         </View>
-      </View>
-      <KeyboardAvoidingView>
-        <View
+        <Text
           style={{
-            alignItems: "center",
+            marginTop: 20,
+            textAlign: "center",
+            fontSize: 23,
+            fontFamily: "GeezaPro-Bold",
+            color: "white",
           }}
         >
+          Hinge
+        </Text>
+      </View>
+
+      <KeyboardAvoidingView>
+        <View style={{ alignItems: "center" }}>
           <Text
             style={{
-              marginTop: 25,
-              textAlign: "center",
-              fontSize: 17,
+              fontSize: 20,
               fontWeight: "bold",
-              color: "#f9629F",
+              marginTop: 25,
+              color: "#581845",
             }}
           >
-            Log in to your Account
+            Desgined to be deleted
           </Text>
         </View>
+
         <View
           style={{
             justifyContent: "center",
@@ -136,148 +143,171 @@ const login = () => {
           }}
         >
           <Image
-            style={{
-              width: 100,
-              height: 100,
-              resizeMode: "cover",
-            }}
+            style={{ width: 100, height: 80, resizeMode: "cover" }}
             source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/2509/2509078.png",
+              uri: "https://branditechture.agency/brand-logos/wp-content/uploads/wpdm-cache/Hinge-App-900x0.png",
             }}
           />
-          <View
-            style={{
-              marginTop: 20,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 5,
-                backgroundColor: "#FFC0CB",
-                paddingVertical: 5,
-                borderRadius: 5,
-                marginTop: 30,
-              }}
-            >
-              <MaterialCommunityIcons
-                name="email"
-                size={24}
-                color="white"
-                style={{ marginLeft: 10 }}
-              />
-              <TextInput
-                value={email}
-                onChangeText={(text) => setEmail(text)}
-                placeholder="Enter your email"
-                placeholderTextColor="white"
-                style={{
-                  color: "white",
-                  marginVertical: 10,
-                  width: 300,
-                  fontSize: email ? 17 : 17,
-                }}
-              />
-            </View>
-            <View style={{}}>
+        </View>
+
+        <View style={{ marginTop: 20 }}>
+          {option == "Sign In" ? (
+            <>
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 5,
-                  backgroundColor: "#FFC0CB",
+                  backgroundColor: "#581845",
                   paddingVertical: 5,
                   borderRadius: 5,
                   marginTop: 30,
                 }}
               >
-                <AntDesign
-                  name="lock"
+                <MaterialIcons
+                  style={{ marginLeft: 8 }}
+                  name="email"
                   size={24}
                   color="white"
-                  style={{ marginLeft: 10 }}
                 />
                 <TextInput
-                  value={password}
-                  onChangeText={(text) => setPassword(text)}
-                  secureTextEntry
-                  placeholder="Enter your password"
-                  placeholderTextColor="white"
+                  value={email}
+                  onChangeText={(text) => setEmail(text)}
+                  placeholder="Enter your email"
+                  placeholderTextColor={"white"}
                   style={{
                     color: "white",
                     marginVertical: 10,
                     width: 300,
-                    fontSize: password ? 17 : 17,
+                    // fontSize: password ? 17 : 17,
                   }}
                 />
               </View>
-            </View>
-            <View
-              style={{
-                marginTop: 12,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Text>Keep me logged in</Text>
-              <Text
-                style={{
-                  color: "#007FFF",
-                  fontWeight: "500",
-                }}
-              >
-                Forgot Password
-              </Text>
-            </View>
-            <View style={{ marginTop: 30 }} />
-            <Pressable
-              style={{
-                width: 200,
-                backgroundColor: "#FFC0CB",
-                borderRadius: 6,
-                marginLeft: "auto",
-                marginRight: "auto",
-                padding: 15,
-              }}
-              onPress={handleLogin}
-            >
-              <Text
-                style={{
-                  textAlign: "center",
-                  color: "white",
-                  flexShrink: 16,
-                  fontWeight: "bold",
-                }}
-              >
-                Login
-              </Text>
-            </Pressable>
-            <Pressable
-              style={{ marginTop: 12 }}
-              onPress={() => {
-                navigation.navigate("auth/registration/BasicInfo");
-              }}
-            >
-              <Text
-                style={{
-                  textAlign: "center",
-                  color: "gray",
 
-                  fontSize: 16,
+              <View style={{}}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                    backgroundColor: "#581845",
+                    paddingVertical: 5,
+                    borderRadius: 5,
+                    marginTop: 30,
+                  }}
+                >
+                  <AntDesign
+                    style={{ marginLeft: 8 }}
+                    name="lock1"
+                    size={24}
+                    color="white"
+                  />
+                  <TextInput
+                    value={password}
+                    onChangeText={(text) => setPassword(text)}
+                    secureTextEntry={true}
+                    placeholder="Enter your password"
+                    style={{
+                      color: "white",
+                      marginVertical: 10,
+                      width: 300,
+                      //   fontSize: password ? 17 : 17,
+                    }}
+                    placeholderTextColor="white"
+                  />
+                </View>
+              </View>
+
+              <View
+                style={{
+                  marginTop: 12,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                 }}
               >
-                Don't have an account? Sign Up
-              </Text>
-            </Pressable>
-          </View>
+                <Text>Keep me logged in</Text>
+
+                <Text style={{ color: "#007FFF", fontWeight: "500" }}>
+                  Forgot Password
+                </Text>
+              </View>
+            </>
+          ) : (
+            <View>
+              <LottieView
+                source={require("../../assets/login.json")}
+                style={{
+                  height: 180,
+                  width: 300,
+                  alignSelf: "center",
+                  marginTop: 40,
+                  justifyContent: "center",
+                }}
+                autoPlay
+                loop={true}
+                speed={0.7}
+              />
+            </View>
+          )}
+
+          <View style={{ marginTop: 40 }} />
+
+          <Pressable
+            onPress={createAccount}
+            style={{
+              width: 300,
+              backgroundColor:
+                option == "Create account" ? "#581845" : "transparent",
+              borderRadius: 6,
+              marginLeft: "auto",
+              marginRight: "auto",
+              padding: 15,
+              borderRadius: 30,
+            }}
+          >
+            <Text
+              style={{
+                textAlign: "center",
+                color: option == "Create account" ? "white" : "black",
+                fontSize: 16,
+                fontWeight: "bold",
+              }}
+            >
+              Create account
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={signInUser}
+            style={{
+              width: 300,
+              backgroundColor: option == "Sign In" ? "#581845" : "transparent",
+              borderRadius: 6,
+              marginLeft: "auto",
+              marginRight: "auto",
+              padding: 15,
+              borderRadius: 30,
+              marginTop: 20,
+            }}
+          >
+            <Text
+              style={{
+                textAlign: "center",
+                color: option == "Sign In" ? "white" : "black",
+                fontSize: 16,
+                fontWeight: "bold",
+              }}
+            >
+              Sign In
+            </Text>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-export default login;
+export default LoginScreen;
 
 const styles = StyleSheet.create({});

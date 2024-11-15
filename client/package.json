@@ -15,6 +15,8 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@dotlottie/common": "^0.7.5",
+    "@dotlottie/react-player": "^1.6.10",
     "@expo/vector-icons": "^14.0.4",
     "@lottiefiles/dotlottie-react": "^0.6.5",
     "@react-native-async-storage/async-storage": "^1.23.1",
