@@ -90,28 +90,24 @@ const PreFinalScreen = () => {
       console.error("Error clearing screen data:", error);
     }
   };
+
   const registerUser = async () => {
     try {
       const response = await axios
-        .post("http://localhost:3000/register", userData)
+        .post("http://localhost:8000/api/auth/register", userData)
         .then((response) => {
           console.log(response);
           const token = response.data.token;
           AsyncStorage.setItem("token", token);
           setToken(token);
         });
-      // Assuming the response contains the user data and token
 
-      // Store the token in AsyncStorage
-      // navigation.replace('Main', {
-      //   screen: 'Home',
-      // });
-      //   navigation.replace('MainStack', {screen: 'Main'});
+      navigation.navigate("tabs/index", { screen: "tabs/index" });
 
       clearAllScreenData();
     } catch (error) {
       console.error("Error registering user:", error);
-      throw error; // Throw the error for handling in the component
+      throw error;
     }
   };
   console.log("user data", userData);

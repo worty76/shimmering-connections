@@ -83,9 +83,13 @@ const PromptScreen = () => {
   };
 
   const handleNext = () => {
-    saveRegistrationProgress("Prompts", { prompts: route.params.prompts });
-
-    navigation.navigate("auth/registration/PreFinalScreen");
+    if (route.params && route.params.prompts) {
+      saveRegistrationProgress("Prompts", { prompts: route.params.prompts });
+      navigation.navigate("auth/registration/PreFinalScreen");
+    } else {
+      console.error("No prompts found in route.params");
+      // Optionally, you could display an alert or a message to the user
+    }
   };
   return (
     <View>
