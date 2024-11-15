@@ -163,7 +163,7 @@ const bio = () => {
       setDesc(data?.desc);
       setTurnOns(data?.turnOns);
       setLookingFor(data?.lookingFor);
-      setProfileImages(data?.profileImages);
+      setProfileImages(data?.imageUrls);
       console.log(data);
     } catch (error) {
       console.error("error", error);
@@ -336,7 +336,8 @@ const bio = () => {
                 style={styles.logoStyle}
               />
               <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 6 }}>
-                {user && user.name}
+                {user &&
+                  user.firstName + " " + (user.lastName ? user.lastName : "")}
               </Text>
               <Text style={{ marginTop: 4, fontSize: 15 }}>
                 {user && user.email}
