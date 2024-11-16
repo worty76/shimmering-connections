@@ -35,9 +35,14 @@ const AuthProvider = ({ children }) => {
       console.log("Token set, performing navigation...");
     }
   }, [token]);
+
+  const logout = async () => {
+    await AsyncStorage.removeItem("token");
+    setToken(null);
+  };
   return (
     <AuthContext.Provider
-      value={{ token, isLoading, login, register, setToken }}
+      value={{ token, isLoading, login, register, setToken, logout }}
     >
       {children}
     </AuthContext.Provider>
