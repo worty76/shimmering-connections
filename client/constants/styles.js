@@ -1,4 +1,4 @@
-import { Colors } from "./";
+import Colors from "./colors";
 
 const Header = {
   headerTintColor: Colors.primaryColor,

@@ -2,9 +2,9 @@ import { Stack } from "expo-router";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Explore from "./explore";
-import bio from "./bio/bio";
-import profile from "./profile/profile";
+import Explore from "./Explore";
+import BioScreen from "./bio/BioScreen";
+import ProfileScreen from "./profile/ProfileScreen";
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import {
@@ -41,7 +41,7 @@ export default function BottomTabs() {
 
       <Tab.Screen
         name="bio"
-        component={bio}
+        component={BioScreen}
         options={{
           tabBarStyle: { backgroundColor: "#101010" },
           tabBarLabelStyle: { color: "#008E97" },
@@ -57,7 +57,7 @@ export default function BottomTabs() {
 
       <Tab.Screen
         name="profile"
-        component={profile}
+        component={ProfileScreen}
         options={{
           tabBarStyle: { backgroundColor: "#101010" },
           tabBarLabelStyle: { color: "#008E97" },

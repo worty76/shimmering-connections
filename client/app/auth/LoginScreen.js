@@ -19,6 +19,7 @@ import AsyncStorage, {
 } from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
+import api from "../../constants/api";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -48,10 +49,7 @@ const LoginScreen = () => {
         email: email,
         password: password,
       };
-      const response = await axios.post(
-        "http://localhost:8000/api/auth/login",
-        user
-      );
+      const response = await axios.post(`${api.API_URL}/api/auth/login`, user);
       const token = response.data.token;
 
       await AsyncStorage.setItem("token", token);
@@ -67,20 +65,7 @@ const LoginScreen = () => {
 
     navigation.navigate("auth/registration/BasicInfo");
   };
-  const handleLogin = () => {
-    const user = {
-      email: email,
-      password: password,
-    };
-    axios
-      .post("http://localhost:3000/api/auth/login", user)
-      .then((response) => {
-        console.log(response);
-        const token = response.data.token;
-        AsyncStorage.setItem("auth", token);
-        navigation.navigate("tabs/index");
-      });
-  };
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}

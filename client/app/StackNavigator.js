@@ -1,9 +1,8 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import login from "./auth/login";
-import register from "./auth/register";
-import select from "./auth/select";
+import LoginScreen from "./auth/LoginScreen";
+import RegisterScreen from "./auth/RegisterScreen";
 import { AuthContext } from "../context/AuthContext";
 import { NavigationContainer } from "@react-navigation/native";
 import { useContext } from "react";
@@ -12,9 +11,9 @@ import {
   Entypo,
   MaterialIcons,
 } from "@expo/vector-icons";
-import Explore from "./tabs/explore";
-import bio from "./tabs/bio/bio";
-import profile from "./tabs/profile/profile";
+import Explore from "./tabs/Explore";
+import bio from "./tabs/bio/BioScreen";
+import profile from "./tabs/profile/ProfileScreen";
 import BottomTabs from "./tabs/index";
 import BasicInfo from "./auth/registration/BasicInfo";
 import NameScreen from "./auth/registration/NameScreen";
@@ -54,18 +53,13 @@ const StackNavigator = () => {
     <Stack.Navigator>
       <Stack.Screen
         name="auth/login"
-        component={login}
+        component={LoginScreen}
         options={{ headerShown: false }}
       />
 
       <Stack.Screen
         name="auth/register"
-        component={register}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="auth/select"
-        component={select}
+        component={RegisterScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

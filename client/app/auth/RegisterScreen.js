@@ -17,7 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import api from "../../constants/api";
 
-const register = () => {
+const RegisterScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -283,6 +283,6 @@ const register = () => {
   );
 };
 
-export default register;
+export default RegisterScreen;
 
 const styles = StyleSheet.create({});

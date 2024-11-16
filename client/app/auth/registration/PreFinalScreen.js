@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRoute } from "@react-navigation/native";
 import axios from "axios";
 import { AuthContext } from "../../../context/AuthContext";
+import api from "../../../constants/api";
 
 const PreFinalScreen = () => {
   const navigation = useNavigation();
@@ -94,7 +95,7 @@ const PreFinalScreen = () => {
   const registerUser = async () => {
     try {
       const response = await axios
-        .post("http://localhost:8000/api/auth/register", userData)
+        .post(`${api.API_URL}/api/auth/register`, userData)
         .then((response) => {
           console.log(response);
           const token = response.data.token;
