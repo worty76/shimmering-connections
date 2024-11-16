@@ -1,74 +1,26 @@
 import React, { useState } from "react";
-import { TouchableOpacity, Image, StyleSheet } from "react-native";
+import { TouchableOpacity, Image, StyleSheet, View, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Animatable from "react-native-animatable";
-import {
-  PanGestureHandler,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
-import Animated, {
-  withSpring,
-  useSharedValue,
-  useAnimatedStyle,
-  Easing,
-  useAnimatedGestureHandler,
-} from "react-native-reanimated";
+import { AntDesign } from "@expo/vector-icons";
 
-const UserCard = ({ imageUrls, onPress }) => {
-  const [imageIndex, setImageIndex] = useState(0); // Track the current image index
-  const translateX = useSharedValue(0); // Shared value for horizontal swipe
-  const translateY = useSharedValue(0); // Shared value for vertical swipe
+const UserCard = ({ imageUrls, onPress, userInfo }) => {
+  const [imageIndex, setImageIndex] = useState(0);
 
   // Function to go to the next image
   const nextImage = () => {
-    setImageIndex((prevIndex) => (prevIndex + 1) % imageUrls.length); // Loop back to first image
+    setImageIndex((prevIndex) => (prevIndex + 1) % imageUrls.length);
   };
 
   // Function to go to the previous image
   const prevImage = () => {
-    setImageIndex(
-      (prevIndex) => (prevIndex - 1 + imageUrls.length) % imageUrls.length
-    ); // Loop back to last image
+    setImageIndex((prevIndex) =>
+      prevIndex - 1 < 0 ? imageUrls.length - 1 : prevIndex - 1
+    );
   };
 
-  // Handle the gesture for swiping images
-  const onGestureEvent = useAnimatedGestureHandler({
-    onStart: (event, context) => {
-      context.startX = translateX.value; // Store the starting position of the swipe
-      context.startY = translateY.value; // Store the starting position of the swipe
-    },
-    onActive: (event, context) => {
-      translateX.value = context.startX + event.translationX; // Update horizontal translation
-      translateY.value = context.startY + event.translationY; // Update vertical translation
-    },
-    onEnd: () => {
-      if (Math.abs(translateX.value) > 150) {
-        // If swipe is more than 150px, move to the next or previous image
-        if (translateX.value > 0) {
-          nextImage(); // Swipe right (next image)
-        } else {
-          prevImage(); // Swipe left (previous image)
-        }
-      } else {
-        // Reset position if swipe is not far enough
-        translateX.value = withSpring(0, { damping: 10, stiffness: 80 });
-        translateY.value = withSpring(0, { damping: 10, stiffness: 80 });
-      }
-    },
-  });
-
-  // Animated styles for the image movement
-  const imageStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: translateX.value }, // Apply horizontal swipe translation
-        { translateY: translateY.value }, // Apply vertical swipe translation
-      ],
-    };
-  });
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <TouchableOpacity onPress={onPress} style={{ flex: 1 }}>
         <Animatable.View
           style={styles.container}
@@ -76,28 +28,49 @@ const UserCard = ({ imageUrls, onPress }) => {
           duration={500}
           easing="ease-in-sine"
         >
-          <PanGestureHandler onGestureEvent={onGestureEvent}>
-            <Animated.View style={[styles.imageContainer, imageStyle]}>
-              <Image
-                style={styles.image}
-                source={{ uri: imageUrls[imageIndex] }} // Display the current image based on the index
-              />
-              <LinearGradient
-                colors={["transparent", "rgba(0,0,0,0.8)"]}
-                style={styles.gradient}
-              />
-            </Animated.View>
-          </PanGestureHandler>
+          <View style={styles.imageContainer}>
+            <Image
+              resizeMode="cover"
+              style={styles.image}
+              source={{ uri: imageUrls[imageIndex] }}
+            />
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.8)"]}
+              style={styles.gradient}
+            />
+            <TouchableOpacity style={styles.leftArrow} onPress={prevImage}>
+              <AntDesign name="left" size={24} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.rightArrow} onPress={nextImage}>
+              <AntDesign name="right" size={24} color="white" />
+            </TouchableOpacity>
+            <View style={styles.userInfoContainer}>
+              <Text style={styles.userName}>
+                {`${userInfo.firstName}, ${userInfo.age}`}
+              </Text>
+              <Text style={styles.userLocation}>{userInfo.location}</Text>
+            </View>
+          </View>
         </Animatable.View>
+        <View style={styles.indicatorsContainer}>
+          {imageUrls.map((_, idx) => (
+            <View
+              key={idx}
+              style={[
+                styles.indicator,
+                imageIndex === idx && styles.activeIndicator,
+              ]}
+            />
+          ))}
+        </View>
       </TouchableOpacity>
-    </GestureHandlerRootView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderRadius: 8,
     position: "relative",
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -105,12 +78,13 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flex: 1,
-    borderRadius: 8,
     position: "relative",
+    overflow: "hidden",
   },
   image: {
     flex: 1,
-    borderRadius: 8,
+    width: "100%",
+    height: "100%",
   },
   gradient: {
     position: "absolute",
@@ -118,7 +92,58 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
+  },
+  leftArrow: {
+    position: "absolute",
+    left: 10,
+    top: "50%",
+    transform: [{ translateY: -12 }],
+    zIndex: 1,
+  },
+  rightArrow: {
+    position: "absolute",
+    right: 10,
+    top: "50%",
+    transform: [{ translateY: -12 }],
+    zIndex: 1,
+  },
+  userInfoContainer: {
+    position: "absolute",
+    bottom: 100,
+    left: 20,
+    right: 20,
+    zIndex: 2,
+    padding: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 8,
+  },
+  userName: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  userLocation: {
+    color: "white",
+    fontSize: 16,
+    marginTop: 2,
+  },
+  indicatorsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    position: "absolute",
+    bottom: 10,
+    left: 0,
+    right: 0,
+  },
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#888",
+    marginHorizontal: 4,
+  },
+  activeIndicator: {
+    backgroundColor: "#fff",
   },
 });
 

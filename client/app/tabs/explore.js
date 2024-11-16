@@ -4,15 +4,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import { UserCard, MatchButton, NoMoreMatches } from "../../components";
 import axios from "axios";
-import { Colors } from "../../constants";
+import Colors from "../../constants/colors";
 import constants from "../../constants/api";
 import * as Animatable from "react-native-animatable";
 
 const Explore = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [userIndex, setUserIndex] = useState(0);
-  const [userId, setUserId] = useState(null); // Ensure it's null initially
-  const [auth, setAuth] = useState(null); // Ensure it's null initially
+  const [userId, setUserId] = useState(null);
+  const [auth, setAuth] = useState(null);
   const [users, setUsers] = useState([]);
 
   // Fetch userId from AsyncStorage
@@ -59,7 +59,7 @@ const Explore = ({ navigation }) => {
       const params = { userId: userId };
       const res = await axios.get(url, { params });
       setUsers(res?.data?.matches || []);
-      setUserIndex(0); // Reset the user index to 0 after fetching users
+      setUserIndex(0);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching user profiles:", error);
@@ -68,29 +68,38 @@ const Explore = ({ navigation }) => {
   };
 
   // Handle user actions (like/dislike)
-  const userLike = () => {
-    nextUser();
+  const userLike = async () => {
+    try {
+      console.log("userLike function called");
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      nextUser();
+    } catch (error) {
+      console.error("Error inside userLike (async):", error);
+    }
   };
 
   const userDislike = () => {
     nextUser();
   };
 
-  const userPressed = (user) => {
-    // Navigate to UserProfile screen with the current image URL
-    navigation.navigate("UserProfile", {
-      imageUrls: user.imageUrls, // Pass the whole array of image URLs
-      currentImageIndex: userIndex, // Pass the current image index to show the current image
-    });
-  };
-
   const nextUser = () => {
-    setUserIndex((prevIndex) => prevIndex + 1); // Move to the next user
+    try {
+      console.log("Navigating to the next user");
+      setUserIndex((prevIndex) => {
+        const newIndex = prevIndex + 1;
+        if (newIndex >= users.length) {
+          console.warn("Reached the end of the user list");
+          return prevIndex;
+        }
+        return newIndex;
+      });
+    } catch (error) {
+      console.error("Error in nextUser function:", error);
+    }
   };
 
-  const user = users && users[userIndex]; // Get the user based on the current index
+  const user = users && users[userIndex];
 
-  // Loading state
   if (loading) {
     return (
       <View style={styles.loading}>
@@ -99,7 +108,6 @@ const Explore = ({ navigation }) => {
     );
   }
 
-  // No more users available
   if (users && userIndex >= users.length) {
     return <NoMoreMatches onReloadPress={fetchProfile} />;
   }
@@ -112,6 +120,11 @@ const Explore = ({ navigation }) => {
             navigation.navigate("UserProfile", { userId: user.id })
           }
           imageUrls={user.imageUrls}
+          userInfo={{
+            firstName: user.firstName,
+            age: user.lastName,
+            location: user.hometown,
+          }}
         />
       )}
       <View style={styles.buttons}>
@@ -120,14 +133,7 @@ const Explore = ({ navigation }) => {
           icon="md-close"
           iconColor="#5B93FA"
         />
-        <Animatable.Text
-          animation="bounceIn"
-          delay={750}
-          duration={500}
-          style={styles.name}
-        >
-          {user && user.firstName}
-        </Animatable.Text>
+
         <MatchButton
           onPress={userLike}
           icon="ios-heart"
@@ -141,7 +147,6 @@ const Explore = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 8,
     position: "relative",
     backgroundColor: "#F8F8F9",
   },
