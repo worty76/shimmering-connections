@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Entypo, AntDesign } from "@expo/vector-icons";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -20,6 +20,7 @@ import { ActivityIndicator } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
+import { AuthContext } from "@/context/AuthContext";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -34,6 +35,7 @@ const bio = () => {
   const [profileImages, setProfileImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  const { logout } = useContext(AuthContext);
   const router = useRouter();
 
   const renderItem = ({ item }) => {
@@ -212,6 +214,7 @@ const bio = () => {
       }
     }
   };
+
   const handleLookingFor = (name) => async () => {
     if (lookingFor.includes(name)) {
       try {
@@ -316,6 +319,20 @@ const bio = () => {
         console.error("Error uploading image", error);
         setLoading(false);
       }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      alert("Logged out successfully");
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "auth/login" }],
+      });
+    } catch (error) {
+      console.error("Error during logout", error);
     }
   };
 
@@ -602,11 +619,7 @@ const bio = () => {
           </View>
         )}
         <Pressable
-          onPress={async () => {
-            await AsyncStorage.removeItem("token");
-            navigation.navigate("auth/login");
-            alert("Logged out successfully");
-          }}
+          onPress={handleLogout}
           style={{
             backgroundColor: "red",
             padding: 10,

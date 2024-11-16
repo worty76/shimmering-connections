@@ -11,79 +11,63 @@ import * as Animatable from "react-native-animatable";
 const Explore = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [userIndex, setUserIndex] = useState(0);
-  const [userId, setUserId] = useState("");
-  const [auth, setAuth] = useState();
+  const [userId, setUserId] = useState(null); // Ensure it's null initially
+  const [auth, setAuth] = useState(null); // Ensure it's null initially
   const [users, setUsers] = useState([]);
 
+  // Fetch userId from AsyncStorage
   const fetchUser = async () => {
     const token = await AsyncStorage.getItem("token");
-    const decodedToken = jwtDecode(token);
-    setUserId(decodedToken.userId);
-    console.log("called at fetchUser");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setUserId(decodedToken.userId);
+    }
   };
+
   useEffect(() => {
     fetchUser();
   }, []);
 
+  // Fetch user data after userId is available
   useEffect(() => {
-    const getAuth = async () => {
-      try {
-        const res = await axios.get(
-          `${constants.API_URL}/api/user/profile/${userId}`
-        );
-        setAuth(res?.data?.user);
-      } catch (error) {
-        console.error("Interval Error Server", error);
-      }
-    };
-
     if (userId) {
+      const getAuth = async () => {
+        try {
+          const res = await axios.get(
+            `${constants.API_URL}/api/user/profile/${userId}`
+          );
+          setAuth(res?.data?.user);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      };
       getAuth();
-    } else {
-      console.log("userId is not valid");
     }
   }, [userId]);
 
-  // useEffect(() => {
-  //   fetchUsers();
-  // }, []);
-
-  // const fetchUsers = async () => {
-  //   try {
-  //     setLoading(true);
-  //     const response = await fetch("https://api.randomuser.me/?results=5");
-  //     const { results } = await response.json();
-  //     setLoading(false);
-  //     setUsers(results);
-  //     setUserIndex(0);
-  //   } catch (e) {
-  //     setLoading(false);
-  //     Alert.alert("Failed to load", "There was an issue loading users");
-  //   }
-  // };
+  // Fetch user profiles once auth and userId are available
+  useEffect(() => {
+    if (auth && userId) {
+      fetchProfile();
+    }
+  }, [auth, userId]);
 
   const fetchProfile = async () => {
     try {
+      setLoading(true);
       const url = `${constants.API_URL}/api/user/profiles/`;
-      const params = {
-        userId: userId,
-        gender: auth?.gender,
-        turnOns: auth?.turnOns,
-        lookingFor: auth?.lookingFor,
-      };
+      const params = { userId: userId };
       const res = await axios.get(url, { params });
-      setUsers(res?.data?.data);
-      setUserIndex(0);
-      console.log("called");
-      console.log(users);
+      setUsers(res?.data?.matches || []);
+      setUserIndex(0); // Reset the user index to 0 after fetching users
+      setLoading(false);
     } catch (error) {
-      console.error("error", error);
+      console.error("Error fetching user profiles:", error);
+      setLoading(false);
     }
   };
-  useEffect(() => {
-    if (auth && userId) fetchProfile();
-  }, [auth, userId]);
 
+  // Handle user actions (like/dislike)
   const userLike = () => {
     nextUser();
   };
@@ -93,17 +77,20 @@ const Explore = ({ navigation }) => {
   };
 
   const userPressed = (user) => {
+    // Navigate to UserProfile screen with the current image URL
     navigation.navigate("UserProfile", {
-      imageUrl: user.picture.large,
+      imageUrls: user.imageUrls, // Pass the whole array of image URLs
+      currentImageIndex: userIndex, // Pass the current image index to show the current image
     });
   };
 
   const nextUser = () => {
-    setUserIndex((prevIndex) => prevIndex + 1);
+    setUserIndex((prevIndex) => prevIndex + 1); // Move to the next user
   };
 
-  const user = users[userIndex];
+  const user = users && users[userIndex]; // Get the user based on the current index
 
+  // Loading state
   if (loading) {
     return (
       <View style={styles.loading}>
@@ -112,16 +99,21 @@ const Explore = ({ navigation }) => {
     );
   }
 
-  if (userIndex >= users.length) {
+  // No more users available
+  if (users && userIndex >= users.length) {
     return <NoMoreMatches onReloadPress={fetchProfile} />;
   }
 
   return (
     <View style={styles.container}>
-      <UserCard
-        onPress={() => userPressed(user)}
-        imageUrl={user.picture?.large}
-      />
+      {user && (
+        <UserCard
+          onPress={() =>
+            navigation.navigate("UserProfile", { userId: user.id })
+          }
+          imageUrls={user.imageUrls}
+        />
+      )}
       <View style={styles.buttons}>
         <MatchButton
           onPress={userDislike}
@@ -134,7 +126,7 @@ const Explore = ({ navigation }) => {
           duration={500}
           style={styles.name}
         >
-          {user.name}
+          {user && user.firstName}
         </Animatable.Text>
         <MatchButton
           onPress={userLike}

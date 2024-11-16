@@ -14,28 +14,51 @@ const getUserData = async (req, res) => {
 };
 
 const getProfiles = async (req, res) => {
-  console.log("Called");
-  const { userId, gender, turnOns, lookingFor } = req.query;
   try {
-    let filter = { gender: gender == "male" ? "female" : "male" };
-    if (turnOns) filter.turnOns = { $in: turnOns };
-    if (lookingFor) filter.lookingFor = { $in: lookingFor };
+    const { userId } = req.query;
 
-    const profiles = await User.findById(userId)
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    let filter = {};
+
+    if (user.gender === "Men") {
+      filter.gender = "Women";
+    } else if (user.gender === "Women") {
+      filter.gender = "Men";
+    }
+
+    let query = {
+      _id: { $ne: userId },
+    };
+
+    if (user.datingPreferences && user.datingPreferences.length > 0) {
+      filter.datingPreferences = user.datingPreferences;
+    }
+    if (user.type) {
+      filter.type = user.type;
+    }
+
+    const currentUser = await User.findById(userId)
       .populate("matches", "_id")
-      .populate("crushes", "_id");
+      .populate("likedProfiles", "_id");
 
-    const matches = profiles.matches.map((match) => match._id);
+    const friendIds = currentUser.matches.map((friend) => friend._id);
 
-    const crushes = profiles.crushes.map((crush) => crush._id);
+    const crushIds = currentUser.likedProfiles.map((crush) => crush._id);
 
-    const data = await User.find({ ...filter })
+    console.log("filter", filter);
+
+    const matches = await User.find(filter)
       .where("_id")
-      .nin([userId, ...matches, ...crushes]);
+      .nin([userId, ...friendIds, ...crushIds]);
 
-    return res.status(200).json({ data });
+    return res.status(200).json({ matches });
   } catch (error) {
-    return res.status(500).json({ message: "Error fetching profiles", error });
+    console.error("Error fetching matches:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
