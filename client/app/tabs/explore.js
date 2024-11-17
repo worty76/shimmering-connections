@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  SafeAreaView,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import { UserCard, MatchButton, NoMoreMatches } from "../../components";
@@ -100,7 +106,7 @@ const Explore = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F6" }}>
       {user && (
         <UserCard
           onPress={() =>
@@ -125,7 +131,7 @@ const Explore = ({ navigation }) => {
           iconColor={Colors.primaryColor}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

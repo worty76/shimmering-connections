@@ -5,6 +5,7 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  Platform,
 } from "react-native";
 import React from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -46,14 +47,18 @@ const HandleLikeScreen = () => {
   };
 
   const match = () => {
-    Alert.alert(`Match with ${route?.params?.name}?`, ``, [
-      {
-        text: "Cancel",
-        onPress: () => console.log("Cancel Pressed"),
-        style: "cancel",
-      },
-      { text: "OK", onPress: createMatch },
-    ]);
+    if (Platform.OS === "ios") {
+      Alert.alert(`Match with ${route?.params?.name}?`, ``, [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        { text: "OK", onPress: createMatch },
+      ]);
+    } else {
+      createMatch();
+    }
   };
 
   return (

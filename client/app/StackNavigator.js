@@ -33,6 +33,7 @@ import PreFinalScreen from "./auth/registration/PreFinalScreen";
 import ProfileDetailsScreen from "./tabs/profile/ProfileDetailsScreen";
 import EditInfoScreen from "./tabs/profile/EditInfoScreen";
 import HandleLikeScreen from "./tabs/profile/HandleLikeScreen";
+import ChatRoom from "./tabs/chat/ChatRoom";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -137,12 +138,6 @@ const StackNavigator = () => {
         component={PreFinalScreen}
         options={{ headerShown: false }}
       />
-      {/* <Stack.Screen
-        name="Main"
-        component={BottomTabs}
-        options={{headerShown: false}}
-      /> */}
-      {/* Other authentication screens */}
     </Stack.Navigator>
   );
 
@@ -154,11 +149,7 @@ const StackNavigator = () => {
           component={BottomTabs}
           options={{ headerShown: false }}
         />
-        {/* <Stack.Screen
-          name="Animation"
-          component={AnimationScreen}
-          options={{ headerShown: false }}
-        /> */}
+
         <Stack.Screen
           name="tabs/profile/ProfileDetailsScreen"
           component={ProfileDetailsScreen}
@@ -174,26 +165,11 @@ const StackNavigator = () => {
           component={HandleLikeScreen}
           options={{ headerShown: false }}
         />
-        {/* 
-        <Stack.Screen
-          name="SendLike"
-          component={SendLikeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="ChatRoom" component={ChatRoom} /> */}
+
+        <Stack.Screen name="ChatRoom" component={ChatRoom} />
       </Stack.Navigator>
     );
   }
-  //   const MainStack = () => (
-  //     <Stack.Navigator>
-  //       <Stack.Screen
-  //         name="Main"
-  //         component={BottomTabs}
-  //         options={{headerShown: false}}
-  //       />
-  //     </Stack.Navigator>
-  //   );
-
   return token === null || token === "" ? <AuthStack /> : <MainStack />;
 };
 

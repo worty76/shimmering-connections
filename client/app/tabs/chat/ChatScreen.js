@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView } from "react-native";
+import { StyleSheet, Text, View, ScrollView, SafeAreaView } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -44,18 +44,21 @@ const ChatScreen = () => {
       }
     }, [userId])
   );
+
   console.log("matches", matches);
   return (
-    <ScrollView style={{ marginTop: 55, padding: 12 }}>
-      <View>
-        <Text style={{ fontSize: 20, fontWeight: "500" }}>Your Matches</Text>
-        <View style={{ marginVertical: 12 }}>
-          {matches?.map((item, index) => (
-            <UserChat key={index} userId={userId} item={item} />
-          ))}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F6" }}>
+      <ScrollView style={{ marginTop: 55, padding: 12 }}>
+        <View>
+          <Text style={{ fontSize: 20, fontWeight: "500" }}>Your Matches</Text>
+          <View style={{ marginVertical: 12 }}>
+            {matches?.map((item, index) => (
+              <UserChat key={index} userId={userId} item={item} />
+            ))}
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
