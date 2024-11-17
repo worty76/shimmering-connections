@@ -62,29 +62,107 @@ const getProfiles = async (req, res) => {
   }
 };
 
-const sendLike = async (req, res) => {
+const likeProfile = async (req, res) => {
   try {
-    const { currentID, selectedId } = req.body;
-    await user.findByIdAndUpdate(
-      selectedId,
-      {
-        $push: { receivedLikes: currentID },
+    const { userId, likedUserId, image, comment } = req.body;
+
+    await User.findByIdAndUpdate(likedUserId, {
+      $push: {
+        receivedLikes: {
+          userId: userId,
+          image: image,
+          comment: comment,
+        },
       },
-      { new: true }
-    );
-    await user.findByIdAndUpdate(
-      currentID,
-      {
-        $push: { crushes: selectedId },
+    });
+    await User.findByIdAndUpdate(userId, {
+      $push: {
+        likedProfiles: likedUserId,
       },
-      { new: true }
-    );
-    res.status(200).json({ message: "Like sent successfully" });
+    });
+
+    res.status(200).json({ message: "Profile liked successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+    console.error("Error liking profile:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-const userController = { getUserData, getProfiles, sendLike };
+const receivedLikes = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const likes = await User.findById(userId)
+      .populate("receivedLikes.userId", "firstName imageUrls prompts")
+      .select("receivedLikes");
+
+    res.status(200).json({ receivedLikes: likes.receivedLikes });
+  } catch (error) {
+    console.error("Error fetching received likes:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const createMatch = async (req, res) => {
+  try {
+    const { currentUserId, selectedUserId } = req.body;
+
+    await User.findByIdAndUpdate(selectedUserId, {
+      $push: { matches: currentUserId },
+      $pull: { likedProfiles: currentUserId },
+    });
+
+    await User.findByIdAndUpdate(currentUserId, {
+      $push: { matches: selectedUserId },
+    });
+
+    const updatedUser = await User.findByIdAndUpdate(
+      currentUserId,
+      {
+        $pull: { receivedLikes: { userId: selectedUserId } },
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "ReceivedLikes updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error creating a match", error });
+  }
+};
+
+const getMatches = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId).populate(
+      "matches",
+      "firstName imageUrls"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const matches = user.matches;
+
+    res.status(200).json({ matches });
+  } catch (error) {
+    console.error("Error getting matches:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const userController = {
+  getUserData,
+  getProfiles,
+  likeProfile,
+  receivedLikes,
+  createMatch,
+  getMatches,
+};
 
 module.exports = userController;

@@ -13,7 +13,7 @@ import {
 } from "@expo/vector-icons";
 import Explore from "./tabs/Explore";
 import bio from "./tabs/bio/BioScreen";
-import profile from "./tabs/profile/ProfileScreen";
+import profile from "./tabs/profile/LikesScreen";
 import BottomTabs from "./tabs/index";
 import BasicInfo from "./auth/registration/BasicInfo";
 import NameScreen from "./auth/registration/NameScreen";
@@ -30,13 +30,14 @@ import PhotoScreen from "./auth/registration/PhotoScreen";
 import PromptScreen from "./auth/registration/PromptScreen";
 import ShowPromptScreen from "./auth/registration/ShowPromptScreen";
 import PreFinalScreen from "./auth/registration/PreFinalScreen";
+import ProfileDetailsScreen from "./tabs/profile/ProfileDetailsScreen";
+import EditInfoScreen from "./tabs/profile/EditInfoScreen";
+import HandleLikeScreen from "./tabs/profile/HandleLikeScreen";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
   const { isLoading, token } = useContext(AuthContext);
-  // Ensure token is properly initialized
-  console.log("token:", token);
 
   if (isLoading) {
     return (
@@ -45,9 +46,6 @@ const StackNavigator = () => {
       </View>
     );
   }
-
-  // Check if token is null or empty
-  console.log("Is token null or empty?", token === null || token === "");
 
   const AuthStack = () => (
     <Stack.Navigator>
@@ -161,20 +159,25 @@ const StackNavigator = () => {
           component={AnimationScreen}
           options={{ headerShown: false }}
         /> */}
-        {/* 
         <Stack.Screen
-          name="Details"
+          name="tabs/profile/ProfileDetailsScreen"
           component={ProfileDetailsScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="SendLike"
-          component={SendLikeScreen}
+          name="tabs/profile/EditInfoScreen"
+          component={EditInfoScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="HandleLike"
+          name="tabs/profile/HandleLikeScreen"
           component={HandleLikeScreen}
+          options={{ headerShown: false }}
+        />
+        {/* 
+        <Stack.Screen
+          name="SendLike"
+          component={SendLikeScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen name="ChatRoom" component={ChatRoom} /> */}

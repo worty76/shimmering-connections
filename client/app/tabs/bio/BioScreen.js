@@ -17,26 +17,93 @@ import api from "../../../constants/api";
 import * as ImagePicker from "expo-image-picker";
 import { Dimensions } from "react-native";
 import { ActivityIndicator } from "react-native";
-import * as FileSystem from "expo-file-system";
-import { useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "@/context/AuthContext";
 
 const screenWidth = Dimensions.get("window").width;
 
-const bio = () => {
+const Profile = () => {
   const [option, setOption] = useState("AD");
   const [desc, setDesc] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [userId, setUserId] = useState("");
   const [user, setUser] = useState();
-  const [turnOns, setTurnOns] = useState([]);
   const [lookingFor, setLookingFor] = useState([]);
   const [profileImages, setProfileImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [updatedProfile, setUpdatedProfile] = useState({});
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
-  const router = useRouter();
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      getData();
+    }
+  }, [userId]);
+
+  const fetchUser = async () => {
+    const token = await AsyncStorage.getItem("token");
+    const decodedToken = jwtDecode(token);
+    setUserId(decodedToken.userId);
+  };
+
+  const getData = async () => {
+    try {
+      const res = await axios.get(`${api.API_URL}/api/user/profile/${userId}`);
+      if (res.status !== 200) {
+        alert("Error fetching data");
+        return;
+      }
+      const data = res?.data?.user;
+      setUser(data);
+      setUpdatedProfile(data);
+      setDesc(data?.desc);
+      setLookingFor(data?.lookingFor);
+      setProfileImages(data?.imageUrls);
+    } catch (error) {
+      console.error("Error fetching user data", error);
+    }
+  };
+
+  const updateUserProfile = async () => {
+    try {
+      const res = await axios.put(
+        `${api.API_URL}/api/user/update-profile/${userId}`,
+        updatedProfile
+      );
+      if (res.status !== 200) {
+        alert("Error updating profile");
+        return;
+      }
+      setEditMode(false);
+      alert("Profile updated successfully");
+      getData();
+    } catch (error) {
+      console.error("Error updating profile", error);
+    }
+  };
+
+  const handleEditChange = (field, value) => {
+    setUpdatedProfile((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      alert("Logged out successfully");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "auth/login" }],
+      });
+    } catch (error) {
+      console.error("Error during logout", error);
+    }
+  };
 
   const renderItem = ({ item }) => {
     return (
@@ -49,7 +116,9 @@ const bio = () => {
         }}
       >
         <Image
-          source={{ uri: item }}
+          source={{
+            uri: item,
+          }}
           style={{
             width: "90%",
             height: 250,
@@ -115,144 +184,6 @@ const bio = () => {
     );
   };
 
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
-  const fetchUser = async () => {
-    const token = await AsyncStorage.getItem("token");
-    const decodedToken = jwtDecode(token);
-    setUserId(decodedToken.userId);
-  };
-
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const res = await axios.get(
-          `${api.API_URL}/api/user/profile/${userId}`
-        );
-        setUser(res?.data?.user);
-      } catch (error) {
-        console.error("Interval Error Server", error);
-      }
-    };
-
-    if (userId) getUser();
-  }, [userId]);
-
-  const updateUserDesc = async () => {
-    try {
-      const res = await axios.put(api.api_URL + `users/${userId}/desc`, {
-        desc: desc,
-      });
-      if (res.status !== 200) {
-        alert("Error updating");
-        return;
-      }
-      alert("Updated successfully");
-    } catch (error) {
-      console.error("error", error);
-    }
-  };
-  const getData = async () => {
-    try {
-      const res = await axios.get(`${api.API_URL}/api/user/profile/${userId}`);
-      if (res.status !== 200) {
-        alert("Error fetching data");
-        return;
-      }
-      const data = res?.data?.user;
-      setDesc(data?.desc);
-      setTurnOns(data?.turnOns);
-      setLookingFor(data?.lookingFor);
-      setProfileImages(data?.imageUrls);
-      console.log(data);
-    } catch (error) {
-      console.error("error", error);
-    }
-  };
-  useEffect(() => {
-    if (userId) {
-      getData();
-    }
-  }, [userId]);
-
-  const handleToggleTurnOns = (name) => async () => {
-    if (turnOns.includes(name)) {
-      try {
-        const res = await axios.put(
-          api.api_URL + `/users/${userId}/turn-ons/remove`,
-          {
-            turnOns: name,
-          }
-        );
-        if (res.status !== 200) {
-          alert("Error updating");
-          return;
-        }
-        setTurnOns(turnOns.filter((i) => i !== name));
-        alert("Removed successfully");
-      } catch (error) {
-        console.error("Error removing turn on", error);
-      }
-    } else {
-      try {
-        const res = await axios.put(
-          api.api_URL + `users/${userId}/turn-ons/add`,
-          {
-            turnOns: name,
-          }
-        );
-        if (res.status !== 200) {
-          alert("Error updating");
-          return;
-        }
-        setTurnOns([...turnOns, name]);
-        alert("Updated successfully");
-      } catch (error) {
-        console.error("Error adding turn ons", error);
-      }
-    }
-  };
-
-  const handleLookingFor = (name) => async () => {
-    if (lookingFor.includes(name)) {
-      try {
-        const res = await axios.put(
-          api.api_URL + `/users/${userId}/looking-for/remove`,
-          {
-            lookingFor: name,
-          }
-        );
-        if (res.status !== 200) {
-          alert("Error updating");
-          return;
-        }
-        setLookingFor(lookingFor.filter((i) => i !== name));
-        alert("Removed successfully");
-      } catch (error) {
-        console.error("Error removing looking for", error);
-      }
-    } else {
-      try {
-        const res = await axios.put(
-          api.api_URL + `/users/${userId}/looking-for/add`,
-          {
-            lookingFor: name,
-          }
-        );
-        if (res.status !== 200) {
-          alert("Error updating");
-          return;
-        }
-        setLookingFor([...lookingFor, name]);
-        alert("Updated successfully");
-      } catch (error) {
-        console.error("Error adding looking for", error);
-      }
-    }
-  };
-
   const pickImage = async () => {
     let useLibrary = true;
     setLoading(true);
@@ -274,7 +205,7 @@ const bio = () => {
     }
   };
   const uploadImage = async (uri) => {
-    const url = api.api_URL + `/users/${userId}/profile-images`;
+    const url = api.API_URL + `users/${userId}/profile-images`;
     const headers = {
       httpMethod: "POST",
       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
@@ -322,20 +253,6 @@ const bio = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      alert("Logged out successfully");
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "auth/login" }],
-      });
-    } catch (error) {
-      console.error("Error during logout", error);
-    }
-  };
-
   return (
     <ScrollView>
       <View>
@@ -346,21 +263,18 @@ const bio = () => {
           style={{ width: "100%", height: 200, resizeMode: "cover" }}
         />
         <View>
-          <View>
-            <Pressable style={styles.container}>
-              <Image
-                source={{ uri: "../../../assets/images/lethanhdat.jpg" }}
-                style={styles.logoStyle}
-              />
-              <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 6 }}>
-                {user &&
-                  user.firstName + " " + (user.lastName ? user.lastName : "")}
-              </Text>
-              <Text style={{ marginTop: 4, fontSize: 15 }}>
-                {user && user.email}
-              </Text>
-            </Pressable>
-          </View>
+          <Pressable style={styles.container}>
+            <Image
+              source={{ uri: "../../../assets/images/lethanhdat.jpg" }}
+              style={styles.logoStyle}
+            />
+            <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 6 }}>
+              {user && `${user.firstName} ${user.lastName || ""}`}
+            </Text>
+            <Text style={{ marginTop: 4, fontSize: 15 }}>
+              {user && user.email}
+            </Text>
+          </Pressable>
         </View>
       </View>
       <View style={styles.middleRow}>
@@ -386,17 +300,6 @@ const bio = () => {
             Photos
           </Text>
         </Pressable>
-        <Pressable onPress={() => setOption("Turn-ons")}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "500",
-              color: option === "Turn-ons" ? "black" : "gray",
-            }}
-          >
-            Turn-ons
-          </Text>
-        </Pressable>
         <Pressable onPress={() => setOption("Looking For")}>
           <Text
             style={{
@@ -408,40 +311,55 @@ const bio = () => {
             Looking For
           </Text>
         </Pressable>
+        <Pressable
+          onPress={() => navigation.navigate("tabs/profile/EditInfoScreen")}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "500",
+              color: editMode ? "red" : "gray",
+            }}
+          >
+            {editMode ? "Cancel Edit" : "Edit Profile"}
+          </Text>
+        </Pressable>
       </View>
       <View style={{ marginHorizontal: 14, marginVertical: 15 }}>
         {option === "AD" && (
           <View style={styles.bioStyle}>
-            <TextInput
-              multiline
-              placeholder="Write your AD for people to like you"
-              style={{
-                fontSize: desc ? 17 : 17,
-              }}
-              value={desc}
-              onChangeText={(text) => setDesc(text)}
-            />
-            <Pressable onPress={updateUserDesc} style={styles.publishBTN}>
-              <Text
+            {editMode ? (
+              <TextInput
+                multiline
+                placeholder="Write your bio"
                 style={{
-                  color: "white",
-                  textAlign: "center",
-                  fontSize: 15,
-                  fontWeight: "500",
+                  fontSize: 17,
                 }}
-              >
-                Publish in feed
-              </Text>
-              <Entypo name="mask" size={24} color="white" />
-            </Pressable>
+                value={updatedProfile.desc}
+                onChangeText={(text) => handleEditChange("desc", text)}
+              />
+            ) : (
+              <Text style={{ fontSize: 17 }}>{desc}</Text>
+            )}
+            {editMode && (
+              <Pressable onPress={updateUserProfile} style={styles.publishBTN}>
+                <Text
+                  style={{
+                    color: "white",
+                    textAlign: "center",
+                    fontSize: 15,
+                    fontWeight: "500",
+                  }}
+                >
+                  Save Changes
+                </Text>
+                <Entypo name="check" size={24} color="white" />
+              </Pressable>
+            )}
           </View>
         )}
       </View>
-      <View
-        style={{
-          marginHorizontal: 14,
-        }}
-      >
+      <View style={{ marginHorizontal: 14 }}>
         {option === "Photos" && (
           <View>
             {loading ? (
@@ -459,20 +377,6 @@ const bio = () => {
                 }}
               />
             ) : (
-              // <Carousel
-              //   layout={"stack"}
-              //   data={profileImages}
-              //   inverted
-              //   keyExtractor={(item) => item}
-              //   renderItem={renderItem}
-              //   ListEmptyComponent={renderEmptyComponent}
-              //   sliderWidth={350}
-              //   itemWidth={300}
-              //   onSnapToItem={(index) => setActiveIndex(index)}
-              //   layoutCardOffset={18}
-              //   autoplay
-              //   autoplayInterval={1000}
-              // />
               <Carousel
                 width={screenWidth}
                 height={300}
@@ -504,147 +408,32 @@ const bio = () => {
           </View>
         )}
       </View>
-      <View
+      <Pressable
+        onPress={handleLogout}
         style={{
-          marginHorizontal: 14,
+          backgroundColor: "red",
+          padding: 10,
+          borderRadius: 5,
+          marginVertical: 10,
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        {option === "Turn-ons" && (
-          <>
-            {api.TURNON?.map((item, index) => {
-              return (
-                <Pressable
-                  onPress={handleToggleTurnOns(item?.name)}
-                  key={index}
-                  style={{
-                    backgroundColor: "#FFFDD0",
-                    padding: 10,
-                    marginVertical: 10,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        fontSize: 15,
-                        fontWeight: "bold",
-                        flex: 1,
-                      }}
-                    >
-                      {item?.name}
-                    </Text>
-                    {turnOns.includes(item?.name) && (
-                      <AntDesign name="checkcircle" size={18} color="#17B169" />
-                    )}
-                  </View>
-                  <View>
-                    <Text
-                      style={{
-                        marginTop: 4,
-                        fontSize: 15,
-                        color: "gray",
-                        textAlign: "center",
-                      }}
-                    >
-                      {item?.description}
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </>
-        )}
-      </View>
-      <View
-        style={{
-          marginHorizontal: 14,
-        }}
-      >
-        {option === "Looking For" && (
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            {api.LOOKING_FOR?.map((item, index) => {
-              return (
-                <Pressable
-                  key={index}
-                  onPress={handleLookingFor(item?.name)}
-                  style={[
-                    styles.lookingFor,
-                    {
-                      backgroundColor: lookingFor.includes(item?.name)
-                        ? "#fd5c63"
-                        : "#FFFDD0",
-                      borderWidth: lookingFor.includes(item?.name) ? 0 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      fontSize: 13,
-                      color: lookingFor.includes(item?.name)
-                        ? "white"
-                        : "black",
-                      fontWeight: "500",
-                    }}
-                  >
-                    {item?.name}
-                  </Text>
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      width: 140,
-                      marginTop: 10,
-                      fontSize: 13,
-                      color: lookingFor.includes(item?.name) ? "white" : "gray",
-                    }}
-                  >
-                    {item?.description}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
-        <Pressable
-          onPress={handleLogout}
+        <Text
           style={{
-            backgroundColor: "red",
-            padding: 10,
-            borderRadius: 5,
-            marginVertical: 10,
-            justifyContent: "center",
-            alignItems: "center",
+            color: "white",
+            fontSize: 16,
+            fontWeight: "bold",
           }}
         >
-          <Text
-            style={{
-              color: "white",
-              fontSize: 16,
-              fontWeight: "bold",
-            }}
-          >
-            LogOut
-          </Text>
-        </Pressable>
-      </View>
+          LogOut
+        </Text>
+      </Pressable>
     </ScrollView>
   );
 };
 
-export default bio;
+export default Profile;
 
 const styles = StyleSheet.create({
   container: {
@@ -703,14 +492,5 @@ const styles = StyleSheet.create({
     height: 50,
     borderWidth: 0.5,
     borderColor: "blue",
-  },
-  lookingFor: {
-    padding: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 150,
-    margin: 10,
-    borderRadius: 5,
-    borderColor: "#fd5c63",
   },
 });

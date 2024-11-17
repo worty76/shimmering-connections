@@ -4,7 +4,8 @@ import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Explore from "./Explore";
 import BioScreen from "./bio/BioScreen";
-import ProfileScreen from "./profile/ProfileScreen";
+import ProfileScreen from "./profile/LikesScreen";
+import ChatScreen from "./chat/ChatScreen";
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import {
@@ -58,6 +59,30 @@ export default function BottomTabs() {
       <Tab.Screen
         name="profile"
         component={ProfileScreen}
+        options={{
+          tabBarStyle: { backgroundColor: "#101010" },
+          tabBarLabelStyle: { color: "#008E97" },
+          headerShown: false,
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <MaterialIcons
+                name="chat-bubble-outline"
+                size={30}
+                color="white"
+              />
+            ) : (
+              <MaterialIcons
+                name="chat-bubble-outline"
+                size={30}
+                color="#989898"
+              />
+            ),
+        }}
+      />
+
+      <Tab.Screen
+        name="Chat"
+        component={ChatScreen}
         options={{
           tabBarStyle: { backgroundColor: "#101010" },
           tabBarLabelStyle: { color: "#008E97" },

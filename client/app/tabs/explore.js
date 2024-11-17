@@ -15,7 +15,6 @@ const Explore = ({ navigation }) => {
   const [auth, setAuth] = useState(null);
   const [users, setUsers] = useState([]);
 
-  // Fetch userId from AsyncStorage
   const fetchUser = async () => {
     const token = await AsyncStorage.getItem("token");
     if (token) {
@@ -28,7 +27,6 @@ const Explore = ({ navigation }) => {
     fetchUser();
   }, []);
 
-  // Fetch user data after userId is available
   useEffect(() => {
     if (userId) {
       const getAuth = async () => {
@@ -45,7 +43,6 @@ const Explore = ({ navigation }) => {
     }
   }, [userId]);
 
-  // Fetch user profiles once auth and userId are available
   useEffect(() => {
     if (auth && userId) {
       fetchProfile();
@@ -67,34 +64,24 @@ const Explore = ({ navigation }) => {
     }
   };
 
-  // Handle user actions (like/dislike)
-  const userLike = async () => {
-    try {
-      console.log("userLike function called");
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      nextUser();
-    } catch (error) {
-      console.error("Error inside userLike (async):", error);
-    }
-  };
-
   const userDislike = () => {
     nextUser();
   };
 
   const nextUser = () => {
+    setUserIndex((prevIndex) => prevIndex + 1);
+  };
+
+  const likeProfile = async (user) => {
     try {
-      console.log("Navigating to the next user");
-      setUserIndex((prevIndex) => {
-        const newIndex = prevIndex + 1;
-        if (newIndex >= users.length) {
-          console.warn("Reached the end of the user list");
-          return prevIndex;
-        }
-        return newIndex;
+      const response = await axios.post(`${constants.API_URL}/api/user/like`, {
+        userId: userId,
+        likedUserId: user._id,
       });
+      console.log(response);
+      nextUser();
     } catch (error) {
-      console.error("Error in nextUser function:", error);
+      console.error("Error liking profile:", error);
     }
   };
 
@@ -117,7 +104,9 @@ const Explore = ({ navigation }) => {
       {user && (
         <UserCard
           onPress={() =>
-            navigation.navigate("UserProfile", { userId: user.id })
+            navigation.navigate("tabs/profile/ProfileDetailsScreen", {
+              profileId: user._id,
+            })
           }
           imageUrls={user.imageUrls}
           userInfo={{
@@ -128,15 +117,11 @@ const Explore = ({ navigation }) => {
         />
       )}
       <View style={styles.buttons}>
-        <MatchButton
-          onPress={userDislike}
-          icon="md-close"
-          iconColor="#5B93FA"
-        />
+        <MatchButton onPress={userDislike} icon="close" iconColor="#5B93FA" />
 
         <MatchButton
-          onPress={userLike}
-          icon="ios-heart"
+          onPress={() => likeProfile(user)}
+          icon="heart"
           iconColor={Colors.primaryColor}
         />
       </View>
