@@ -5,6 +5,9 @@ import {
   StyleSheet,
   Text,
   View,
+  Button,
+  TextInput,
+  Modal,
 } from "react-native";
 import React, { useState } from "react";
 import constants from "../../../../constants/api";
@@ -13,230 +16,177 @@ import axios from "axios";
 import * as Animatable from "react-native-animatable";
 
 const Profile = ({ profile, isEven, userId, setProfile, index }) => {
-  const color = ["#F0F8FF", "#FFFFFF"];
-  const [like, setLike] = useState(false);
-  const [selected, setSelected] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [updatedProfile, setUpdatedProfile] = useState(profile);
+  const [filterCriteria, setFilterCriteria] = useState("");
 
-  const handleLike = async (id) => {
+  const handleEditProfile = async () => {
     try {
-      setLike(true);
-      await axios.post(constants.API_URL + `send-like`, {
-        currentID: userId,
-        selectedId: id,
-      });
-      setTimeout(() => {
-        setProfile((prev) => prev.filter((profile) => profile._id !== id));
-      }, 200);
-      setLike(false);
+      await axios.put(
+        constants.API_URL + `update-profile/${userId}`,
+        updatedProfile
+      );
+      setEditMode(false);
+      // Optionally refresh or notify profile change
     } catch (error) {
-      console.error("error", error);
+      console.error("Error updating profile", error);
     }
   };
 
-  const handleLikeOther = async (id) => {
-    try {
-      setSelected(true);
-      await axios.post(constants.API_URL + `send-like`, {
-        currentID: userId,
-        selectedId: id,
-      });
-      setTimeout(() => {
-        setProfile((prev) => prev.filter((profile) => profile._id !== id));
-      }, 200);
-      setSelected(false);
-    } catch (error) {
-      console.error("error", error);
-    }
+  const handleFilterChange = (criteria) => {
+    setFilterCriteria(criteria);
+    // Implement filter logic based on `criteria` to filter the list of profiles
   };
-  if (isEven) {
-    return (
-      <View
-        key={index}
-        style={{
-          padding: 12,
-          backgroundColor: "#F0F8FF",
-        }}
-      >
-        <ScrollView showsHorizontalScrollIndicator={false} horizontal>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 50 }}>
-            <View>
-              <Text style={{ fontSize: 18, fontWeight: "600" }}>
-                {profile?.name}
-              </Text>
-              <Text
-                style={{
-                  width: 200,
-                  marginTop: 15,
-                  fontSize: 16,
-                  lineHeight: 25,
-                  marginBottom: 8,
-                }}
-              >
-                {profile?.desc?.length > 160
-                  ? profile?.desc
-                  : profile.desc.substr(0, 160)}
-              </Text>
-            </View>
-            {profile?.profileImages.slice(0, 1).map((image, index) => (
-              <Image
-                key={index}
-                source={{ uri: constants.IMAGE_URL + image }}
-                style={{
-                  width: 260,
-                  height: 260,
-                  borderRadius: 5,
-                  resizeMode: "cover",
-                }}
-              />
-            ))}
-          </View>
-        </ScrollView>
-        <View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginTop: 12,
-            }}
-          >
-            <Entypo name="dots-three-vertical" size={26} color="black" />
-            <View
+
+  return (
+    <View
+      key={index}
+      style={{
+        padding: 12,
+        backgroundColor: isEven ? "#F0F8FF" : "#FFFFFF",
+      }}
+    >
+      <ScrollView showsHorizontalScrollIndicator={false} horizontal>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 50 }}>
+          {profile?.imageUrls?.slice(0, 1).map((image, index) => (
+            <Image
+              key={index}
+              source={{ uri: constants.IMAGE_URL + image }}
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 20,
+                width: 260,
+                height: 260,
+                borderRadius: 5,
+                resizeMode: "cover",
               }}
-            >
-              <Pressable style={styles.like}>
-                <FontAwesome name="diamond" size={27} color="#FF033E" />
-              </Pressable>
-              {like ? (
-                <Pressable style={styles.like}>
-                  <Animatable.View
-                    animation={"swing"}
-                    easing={"ease-in-out-circ"}
-                    iterationCount={1}
-                  >
-                    <AntDesign name="heart" size={27} color="#FF033E" />
-                  </Animatable.View>
-                </Pressable>
-              ) : (
-                <Pressable
-                  style={styles.like}
-                  onPress={() => handleLike(profile?._id)}
+            />
+          ))}
+          <View>
+            {!editMode ? (
+              <>
+                <Text style={{ fontSize: 18, fontWeight: "600" }}>
+                  {profile?.firstName} {profile?.lastName}
+                </Text>
+                <Text
+                  style={{ marginTop: 5, fontSize: 16, fontStyle: "italic" }}
                 >
-                  <AntDesign name="hearto" size={27} color="#FF033E" />
+                  {profile?.gender}
+                </Text>
+                <Text style={{ marginTop: 5, fontSize: 16 }}>
+                  {profile?.dateOfBirth}
+                </Text>
+                <Text style={{ marginTop: 5, fontSize: 16 }}>
+                  Hometown: {profile?.hometown}
+                </Text>
+                <Text style={{ marginTop: 5, fontSize: 16 }}>
+                  Looking for: {profile?.lookingFor}
+                </Text>
+                <View style={{ marginTop: 10 }}>
+                  {profile?.prompts?.map((prompt, index) => (
+                    <View key={index} style={{ marginBottom: 8 }}>
+                      <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+                        {prompt.question}
+                      </Text>
+                      <Text style={{ fontSize: 14 }}>{prompt.answer}</Text>
+                    </View>
+                  ))}
+                </View>
+                <Pressable
+                  onPress={() => setEditMode(true)}
+                  style={styles.editButton}
+                >
+                  <Text style={{ color: "#fff" }}>Edit Profile</Text>
                 </Pressable>
-              )}
-            </View>
+              </>
+            ) : (
+              <View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="First Name"
+                  value={updatedProfile.firstName}
+                  onChangeText={(text) =>
+                    setUpdatedProfile({ ...updatedProfile, firstName: text })
+                  }
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Last Name"
+                  value={updatedProfile.lastName}
+                  onChangeText={(text) =>
+                    setUpdatedProfile({ ...updatedProfile, lastName: text })
+                  }
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Hometown"
+                  value={updatedProfile.hometown}
+                  onChangeText={(text) =>
+                    setUpdatedProfile({ ...updatedProfile, hometown: text })
+                  }
+                />
+                <Pressable
+                  onPress={handleEditProfile}
+                  style={styles.saveButton}
+                >
+                  <Text style={{ color: "#fff" }}>Save Changes</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setEditMode(false)}
+                  style={styles.cancelButton}
+                >
+                  <Text style={{ color: "#fff" }}>Cancel</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         </View>
-        <View style={{ marginVertical: 15 }} />
+      </ScrollView>
+      <View>
+        <TextInput
+          style={styles.filterInput}
+          placeholder="Filter by criteria (e.g., gender, looking for)"
+          value={filterCriteria}
+          onChangeText={handleFilterChange}
+        />
       </View>
-    );
-  } else {
-    return (
-      <View style={{ padding: 12, backgroundColor: "#FFFFFF" }} key={index}>
-        <ScrollView showsHorizontalScrollIndicator={false} horizontal>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 50 }}>
-            {profile?.profileImages.slice(0, 1).map((image, index) => (
-              <Image
-                key={index}
-                source={{ uri: constants.IMAGE_URL + image }}
-                style={{
-                  width: 200,
-                  height: 280,
-                  borderRadius: 5,
-                  resizeMode: "cover",
-                }}
-              />
-            ))}
-            <View>
-              <Text style={{ fontSize: 18, fontWeight: "600" }}>
-                {profile?.name}
-              </Text>
-              <Text
-                style={{
-                  width: 200,
-                  marginTop: 15,
-                  fontSize: 16,
-                  lineHeight: 25,
-                  fontFamily: "sans-serif",
-                  marginBottom: 8,
-                }}
-              >
-                {profile?.desc?.length > 160
-                  ? profile?.desc
-                  : profile.desc.substr(0, 160)}
-              </Text>
-            </View>
-          </View>
-        </ScrollView>
-        <View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginTop: 12,
-            }}
-          >
-            <Entypo name="dots-three-vertical" size={26} color="black" />
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 20,
-              }}
-            >
-              <Pressable style={styles.elLike}>
-                <FontAwesome name="diamond" size={27} color="#0066b2" />
-              </Pressable>
-              {selected ? (
-                <Pressable style={styles.elLike}>
-                  <Animatable.View
-                    animation={"swing"}
-                    easing={"ease-in-out-circ"}
-                    iterationCount={1}
-                  >
-                    <AntDesign name="heart" size={27} color="#6699CC" />
-                  </Animatable.View>
-                </Pressable>
-              ) : (
-                <Pressable
-                  onPress={() => handleLikeOther(profile?._id)}
-                  style={styles.elLike}
-                >
-                  <AntDesign name="hearto" size={27} color="#6699CC" />
-                </Pressable>
-              )}
-            </View>
-          </View>
-        </View>
-        <View style={{ marginVertical: 15 }} />
-      </View>
-    );
-  }
+      <View style={{ marginVertical: 15 }} />
+    </View>
+  );
 };
 
 export default Profile;
 
 const styles = StyleSheet.create({
-  like: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#E0E0E0",
-    justifyContent: "center",
-    alignItems: "center",
+  editButton: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
   },
-  elLike: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#F0F8FF",
-    justifyContent: "center",
-    alignItems: "center",
+  saveButton: {
+    backgroundColor: "#28a745",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  cancelButton: {
+    backgroundColor: "#dc3545",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 8,
+    borderRadius: 5,
+    marginTop: 5,
+  },
+  filterInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 8,
+    borderRadius: 5,
+    marginTop: 10,
+    marginBottom: 15,
   },
 });

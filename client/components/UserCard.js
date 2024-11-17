@@ -7,12 +7,10 @@ import { AntDesign } from "@expo/vector-icons";
 const UserCard = ({ imageUrls, onPress, userInfo }) => {
   const [imageIndex, setImageIndex] = useState(0);
 
-  // Function to go to the next image
   const nextImage = () => {
     setImageIndex((prevIndex) => (prevIndex + 1) % imageUrls.length);
   };
 
-  // Function to go to the previous image
   const prevImage = () => {
     setImageIndex((prevIndex) =>
       prevIndex - 1 < 0 ? imageUrls.length - 1 : prevIndex - 1
@@ -24,7 +22,7 @@ const UserCard = ({ imageUrls, onPress, userInfo }) => {
       <TouchableOpacity onPress={onPress} style={{ flex: 1 }}>
         <Animatable.View
           style={styles.container}
-          animation="zoomInDown"
+          animation="fadeInDown"
           duration={500}
           easing="ease-in-sine"
         >
@@ -85,6 +83,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
+    objectFit: "cover",
   },
   gradient: {
     position: "absolute",
