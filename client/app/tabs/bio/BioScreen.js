@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   View,
+  ActivityIndicator,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { Entypo, AntDesign } from "@expo/vector-icons";
@@ -16,22 +17,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../../constants/api";
 import * as ImagePicker from "expo-image-picker";
 import { Dimensions } from "react-native";
-import { ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "@/context/AuthContext";
 
 const screenWidth = Dimensions.get("window").width;
 
 const Profile = () => {
-  const [option, setOption] = useState("AD");
-  const [desc, setDesc] = useState("");
-  const [activeIndex, setActiveIndex] = useState(0);
   const [userId, setUserId] = useState("");
-  const [user, setUser] = useState();
-  const [lookingFor, setLookingFor] = useState([]);
+  const [user, setUser] = useState({});
   const [profileImages, setProfileImages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [updatedProfile, setUpdatedProfile] = useState({});
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
@@ -62,8 +58,6 @@ const Profile = () => {
       const data = res?.data?.user;
       setUser(data);
       setUpdatedProfile(data);
-      setDesc(data?.desc);
-      setLookingFor(data?.lookingFor);
       setProfileImages(data?.imageUrls);
     } catch (error) {
       console.error("Error fetching user data", error);
@@ -80,7 +74,6 @@ const Profile = () => {
         alert("Error updating profile");
         return;
       }
-      setEditMode(false);
       alert("Profile updated successfully");
       getData();
     } catch (error) {
@@ -90,6 +83,18 @@ const Profile = () => {
 
   const handleEditChange = (field, value) => {
     setUpdatedProfile((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // Add your upload logic or update state with the new image URI
+      alert("Image picked successfully!");
+    }
   };
 
   const handleLogout = async () => {
@@ -161,274 +166,52 @@ const Profile = () => {
     );
   };
 
-  const renderEmptyComponent = () => {
-    return (
-      <View
-        style={{
-          height: 290,
-          justifyContent: "center",
-          width: Dimensions.get("window").width / 1.3,
-        }}
-      >
-        <Text
-          style={{
-            color: "gray",
-            fontSize: 20,
-            fontWeight: "bold",
-            alignSelf: "center",
-          }}
-        >
-          No images
-        </Text>
-      </View>
-    );
-  };
-
-  const pickImage = async () => {
-    let useLibrary = true;
-    setLoading(true);
-    let result;
-    const option = {
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      aspect: [4, 3],
-      quality: 1,
-    };
-    if (useLibrary) {
-      result = await ImagePicker.launchImageLibraryAsync(option);
-    } else {
-      await ImagePicker.requestCameraPermissionsAsync();
-      result = await ImagePicker.launchCameraAsync(option);
-    }
-    if (!result.canceled) {
-      uploadImage(result.assets[0].uri);
-    }
-  };
-  const uploadImage = async (uri) => {
-    const url = api.API_URL + `users/${userId}/profile-images`;
-    const headers = {
-      httpMethod: "POST",
-      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-      fieldName: "file",
-    };
-
-    if (profileImages.includes(uri)) {
-      setLoading(true);
-      try {
-        const res = await axios.put(url + "/remove", {
-          profileImages: uri,
-        });
-        if (res.status !== 200) {
-          alert("Error updating");
-          setLoading(false);
-          return;
-        } else {
-          setProfileImages(profileImages.filter((i) => i !== uri));
-          setLoading(false);
-          setActiveIndex(profileImages?.length);
-          alert("Removed successfully");
-        }
-      } catch (error) {
-        setLoading(false);
-        console.error("Error removing looking for", error);
-      }
-    } else {
-      try {
-        const res = await FileSystem.uploadAsync(url, uri, headers);
-        const data = JSON.parse(res.body);
-        if (res.status !== 200) {
-          alert("Error uploading image");
-          setLoading(false);
-          return;
-        } else {
-          setProfileImages([...profileImages, data.filePath]);
-          setLoading(false);
-          setActiveIndex(profileImages?.length);
-          alert(data.message ?? "Image uploaded successfully");
-        }
-      } catch (error) {
-        console.error("Error uploading image", error);
-        setLoading(false);
-      }
-    }
-  };
-
   return (
-    <ScrollView>
-      <View>
-        <Image
-          source={{
-            uri: "https://static.vecteezy.com/system/resources/thumbnails/018/977/074/original/animated-backgrounds-with-liquid-motion-graphic-background-cool-moving-animation-for-your-background-free-video.jpg",
-          }}
-          style={{ width: "100%", height: 200, resizeMode: "cover" }}
-        />
-        <View>
-          <Pressable style={styles.container}>
-            <Image
-              source={{ uri: "../../../assets/images/lethanhdat.jpg" }}
-              style={styles.logoStyle}
-            />
-            <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 6 }}>
-              {user && `${user.firstName} ${user.lastName || ""}`}
-            </Text>
-            <Text style={{ marginTop: 4, fontSize: 15 }}>
-              {user && user.email}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-      <View style={styles.middleRow}>
-        <Pressable onPress={() => setOption("AD")}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "500",
-              color: option === "AD" ? "black" : "gray",
-            }}
-          >
-            AD
-          </Text>
-        </Pressable>
-        <Pressable onPress={() => setOption("Photos")}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "500",
-              color: option === "Photos" ? "black" : "gray",
-            }}
-          >
-            Photos
-          </Text>
-        </Pressable>
-        <Pressable onPress={() => setOption("Looking For")}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "500",
-              color: option === "Looking For" ? "black" : "gray",
-            }}
-          >
-            Looking For
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => navigation.navigate("tabs/profile/EditInfoScreen")}
-        >
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "500",
-              color: editMode ? "red" : "gray",
-            }}
-          >
-            {editMode ? "Cancel Edit" : "Edit Profile"}
-          </Text>
-        </Pressable>
-      </View>
-      <View style={{ marginHorizontal: 14, marginVertical: 15 }}>
-        {option === "AD" && (
-          <View style={styles.bioStyle}>
-            {editMode ? (
-              <TextInput
-                multiline
-                placeholder="Write your bio"
-                style={{
-                  fontSize: 17,
-                }}
-                value={updatedProfile.desc}
-                onChangeText={(text) => handleEditChange("desc", text)}
-              />
-            ) : (
-              <Text style={{ fontSize: 17 }}>{desc}</Text>
-            )}
-            {editMode && (
-              <Pressable onPress={updateUserProfile} style={styles.publishBTN}>
-                <Text
-                  style={{
-                    color: "white",
-                    textAlign: "center",
-                    fontSize: 15,
-                    fontWeight: "500",
-                  }}
-                >
-                  Save Changes
-                </Text>
-                <Entypo name="check" size={24} color="white" />
-              </Pressable>
-            )}
-          </View>
-        )}
-      </View>
-      <View style={{ marginHorizontal: 14 }}>
-        {option === "Photos" && (
-          <View>
-            {loading ? (
-              <ActivityIndicator
-                size="large"
-                color="pink"
-                style={{
-                  width: "100%",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: 300,
-                  borderWidth: 0.8,
-                  borderColor: "pink",
-                  borderRadius: 10,
-                }}
-              />
-            ) : (
+    <ScrollView contentContainerStyle={styles.container}>
+      {loading ? (
+        <ActivityIndicator size="large" color="pink" />
+      ) : (
+        <>
+          <View style={styles.profileImageContainer}>
+            {profileImages.length > 0 ? (
               <Carousel
-                width={screenWidth}
+                width={screenWidth * 0.9}
                 height={300}
                 data={profileImages}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => index.toString()}
-                onSnapToItem={(index) => setActiveIndex(index)}
               />
+            ) : (
+              <Text style={styles.noImagesText}>No images available</Text>
             )}
-
-            <Pressable onPress={pickImage} style={styles.uploadBTN}>
-              <Text
-                style={{
-                  fontSize: 17,
-                  fontWeight: "500",
-                  color: "black",
-                  textAlign: "center",
-                }}
-              >
-                Upload Photo
-              </Text>
-              <Entypo
-                name="upload-to-cloud"
-                size={24}
-                color="gray"
-                style={{ marginLeft: 8 }}
-              />
+            <Pressable onPress={pickImage} style={styles.uploadButton}>
+              <Entypo name="camera" size={24} color="gray" />
+              <Text style={styles.uploadText}>Upload Photo</Text>
             </Pressable>
           </View>
-        )}
-      </View>
-      <Pressable
-        onPress={handleLogout}
-        style={{
-          backgroundColor: "red",
-          padding: 10,
-          borderRadius: 5,
-          marginVertical: 10,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            color: "white",
-            fontSize: 16,
-            fontWeight: "bold",
-          }}
-        >
-          LogOut
-        </Text>
-      </Pressable>
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>
+              {user.firstName} {user.lastName}
+            </Text>
+            <Text style={styles.userEmail}>{user.email}</Text>
+            <Text style={styles.bioText}>
+              {user.desc || "No bio available"}
+            </Text>
+            <Pressable
+              onPress={() =>
+                navigation.navigate("tabs/profile/EditInfoScreen", { userId })
+              }
+              style={styles.editButton}
+            >
+              <AntDesign name="edit" size={20} color="white" />
+              <Text style={styles.editButtonText}>Edit Profile</Text>
+            </Pressable>
+          </View>
+          <Pressable onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutText}>Log Out</Text>
+          </Pressable>
+        </>
+      )}
     </ScrollView>
   );
 };
@@ -437,60 +220,100 @@ export default Profile;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
-    backgroundColor: "#DDA0DD",
-    width: 300,
-    marginLeft: "auto",
-    marginRight: "auto",
-    justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
-    position: "absolute",
-    top: -80,
-    left: "50%",
-    transform: [{ translateX: -150 }],
+    padding: 20,
   },
-  logoStyle: {
-    width: 65,
-    height: 65,
-    borderRadius: 30,
-    resizeMode: "cover",
-  },
-  middleRow: {
-    marginTop: 80,
-    marginHorizontal: 20,
-    flexDirection: "row",
+  profileImageContainer: {
+    marginBottom: 20,
     alignItems: "center",
-    gap: 25,
-    justifyContent: "center",
   },
-  bioStyle: {
-    borderColor: "#202020",
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 10,
+  profileImage: {
+    width: screenWidth * 0.9,
     height: 300,
+    borderRadius: 20,
+    resizeMode: "cover",
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
-  publishBTN: {
+  noImagesText: {
+    fontSize: 18,
+    color: "gray",
+    marginTop: 20,
+  },
+  uploadButton: {
     flexDirection: "row",
-    marginTop: "auto",
     alignItems: "center",
-    gap: 15,
-    backgroundColor: "black",
-    borderRadius: 5,
-    justifyContent: "center",
+    marginTop: 10,
     padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
   },
-  uploadBTN: {
-    flexDirection: "row",
+  uploadText: {
+    marginLeft: 5,
+    fontSize: 16,
+    color: "gray",
+  },
+  userInfo: {
     alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
+    marginVertical: 15,
+  },
+  userName: {
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  userEmail: {
+    fontSize: 16,
+    color: "gray",
+  },
+  bioText: {
+    marginTop: 10,
+    fontSize: 16,
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
+  input: {
+    width: "90%",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 16,
+  },
+  saveButton: {
+    backgroundColor: "green",
+    padding: 10,
     borderRadius: 5,
     marginTop: 10,
-    backgroundColor: "#DCDCDC",
-    height: 50,
-    borderWidth: 0.5,
-    borderColor: "blue",
+  },
+  saveButtonText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  editButton: {
+    flexDirection: "row",
+    backgroundColor: "blue",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: "center",
+  },
+  editButtonText: {
+    color: "white",
+    fontSize: 16,
+    marginLeft: 5,
+  },
+  logoutButton: {
+    backgroundColor: "red",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: "center",
+  },
+  logoutText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

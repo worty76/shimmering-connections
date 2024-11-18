@@ -107,7 +107,7 @@ const ShowPromptScreen = () => {
       setModalVisible(false);
       navigation.navigate("auth/registration/PromptScreen", {
         prompts: prompts,
-      }); // Navigate away from the screen when prompts reach three
+      });
     }
   };
   console.log("question", prompts);

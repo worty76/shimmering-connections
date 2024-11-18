@@ -12,7 +12,6 @@ import { UserCard, MatchButton, NoMoreMatches } from "../../components";
 import axios from "axios";
 import Colors from "../../constants/colors";
 import constants from "../../constants/api";
-import * as Animatable from "react-native-animatable";
 
 const Explore = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -95,7 +94,7 @@ const Explore = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.loading}>
+      <View style={[styles.loading, { backgroundColor: "#FAF9F6" }]}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -106,7 +105,7 @@ const Explore = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F6" }}>
+    <SafeAreaView style={styles.container}>
       {user && (
         <UserCard
           onPress={() =>
@@ -138,8 +137,7 @@ const Explore = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    position: "relative",
-    backgroundColor: "#F8F8F9",
+    backgroundColor: "#FAF9F6",
   },
   loading: {
     flex: 1,
