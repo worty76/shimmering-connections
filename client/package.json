@@ -53,7 +53,7 @@
     "react-native-screens": "~4.0.0",
     "react-native-snap-carousel": "^3.9.1",
     "react-native-web": "~0.19.13",
-    "socket.io-client": "^4.4.1"
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
