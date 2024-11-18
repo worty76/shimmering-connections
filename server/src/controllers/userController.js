@@ -37,6 +37,7 @@ const getProfiles = async (req, res) => {
     if (user.datingPreferences && user.datingPreferences.length > 0) {
       filter.datingPreferences = user.datingPreferences;
     }
+
     if (user.type) {
       filter.type = user.type;
     }
@@ -156,6 +157,36 @@ const getMatches = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updatedUserData = req.body;
+    console.log(userId);
+    console.log(req.body);
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updatedUserData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "User data updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Error updating user data:", error);
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
 const userController = {
   getUserData,
   getProfiles,
@@ -163,6 +194,7 @@ const userController = {
   receivedLikes,
   createMatch,
   getMatches,
+  updateProfile,
 };
 
 module.exports = userController;

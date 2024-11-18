@@ -27,7 +27,6 @@ const PromptScreen = () => {
   const [userData, setUserData] = useState();
   const getAllUserData = async () => {
     try {
-      // Define an array to store data for each screen
       const screens = [
         "Name",
         "Email",
@@ -39,20 +38,17 @@ const PromptScreen = () => {
         "LookingFor",
         "Hometown",
         "Photos",
-      ]; // Add more screens as needed
+      ];
 
-      // Define an object to store user data
       let userData = {};
 
-      // Retrieve data for each screen and add it to the user data object
       for (const screenName of screens) {
         const screenData = await getRegistrationProgress(screenName);
         if (screenData) {
-          userData = { ...userData, ...screenData }; // Merge screen data into user data
+          userData = { ...userData, ...screenData };
         }
       }
 
-      // Return the combined user data
       setUserData(userData);
     } catch (error) {
       console.error("Error retrieving user data:", error);
@@ -69,16 +65,12 @@ const PromptScreen = () => {
           const token = response.data.token;
           AsyncStorage.setItem("token", token);
         });
-      // Assuming the response contains the user data and token
-
-      // Store the token in AsyncStorage
-
       clearAllScreenData();
 
       navigation.replace("Main");
     } catch (error) {
       console.error("Error registering user:", error);
-      throw error; // Throw the error for handling in the component
+      throw error;
     }
   };
 
@@ -88,7 +80,6 @@ const PromptScreen = () => {
       navigation.navigate("auth/registration/PreFinalScreen");
     } else {
       console.error("No prompts found in route.params");
-      // Optionally, you could display an alert or a message to the user
     }
   };
   return (

@@ -83,11 +83,11 @@ const LookingFor = () => {
             <Text style={{ fontWeight: "500", fontSize: 15 }}>
               Life Partner
             </Text>
-            <Pressable onPress={() => setLookingFor("Life Partner")}>
+            <Pressable onPress={() => setLookingFor("life_partner")}>
               <FontAwesome
                 name="circle"
                 size={26}
-                color={lookingFor == "Life Partner" ? "#581845" : "#F0F0F0"}
+                color={lookingFor == "life_partner" ? "#581845" : "#F0F0F0"}
               />
             </Pressable>
           </View>
@@ -101,13 +101,11 @@ const LookingFor = () => {
             <Text style={{ fontWeight: "500", fontSize: 15 }}>
               Long-term relationship
             </Text>
-            <Pressable onPress={() => setLookingFor("Long-term relationship")}>
+            <Pressable onPress={() => setLookingFor("long_term")}>
               <FontAwesome
                 name="circle"
                 size={26}
-                color={
-                  lookingFor == "Long-term relationship" ? "#581845" : "#F0F0F0"
-                }
+                color={lookingFor == "long_term" ? "#581845" : "#F0F0F0"}
               />
             </Pressable>
           </View>
@@ -121,16 +119,12 @@ const LookingFor = () => {
             <Text style={{ fontWeight: "500", fontSize: 15 }}>
               Long-term relationship open to short
             </Text>
-            <Pressable
-              onPress={() =>
-                setLookingFor("Long-term relationship open to short")
-              }
-            >
+            <Pressable onPress={() => setLookingFor("long_term_open_to_short")}>
               <FontAwesome
                 name="circle"
                 size={26}
                 color={
-                  lookingFor == "Long-term relationship open to short"
+                  lookingFor == "long_term_open_to_short"
                     ? "#581845"
                     : "#F0F0F0"
                 }
@@ -147,16 +141,12 @@ const LookingFor = () => {
             <Text style={{ fontWeight: "500", fontSize: 15 }}>
               Short-term relationship open to long
             </Text>
-            <Pressable
-              onPress={() =>
-                setLookingFor("Short-term relationship open to long")
-              }
-            >
+            <Pressable onPress={() => setLookingFor("short_term_open_to_long")}>
               <FontAwesome
                 name="circle"
                 size={26}
                 color={
-                  lookingFor == "Short-term relationship open to long"
+                  lookingFor == "short_term_open_to_long"
                     ? "#581845"
                     : "#F0F0F0"
                 }
@@ -173,15 +163,11 @@ const LookingFor = () => {
             <Text style={{ fontWeight: "500", fontSize: 15 }}>
               Short-term relationship
             </Text>
-            <Pressable onPress={() => setLookingFor("Short-term relationship")}>
+            <Pressable onPress={() => setLookingFor("short_term")}>
               <FontAwesome
                 name="circle"
                 size={26}
-                color={
-                  lookingFor == "Short-term relationship"
-                    ? "#581845"
-                    : "#F0F0F0"
-                }
+                color={lookingFor == "short_term" ? "#581845" : "#F0F0F0"}
               />
             </Pressable>
           </View>
@@ -195,16 +181,12 @@ const LookingFor = () => {
             <Text style={{ fontWeight: "500", fontSize: 15 }}>
               Figuring out my dating goals
             </Text>
-            <Pressable
-              onPress={() => setLookingFor("Figuring out my dating goals")}
-            >
+            <Pressable onPress={() => setLookingFor("figuring_out_goals")}>
               <FontAwesome
                 name="circle"
                 size={26}
                 color={
-                  lookingFor == "Figuring out my dating goals"
-                    ? "#581845"
-                    : "#F0F0F0"
+                  lookingFor == "figuring_out_goals" ? "#581845" : "#F0F0F0"
                 }
               />
             </Pressable>

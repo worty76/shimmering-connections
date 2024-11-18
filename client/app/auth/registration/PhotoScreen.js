@@ -25,7 +25,6 @@ const PhotoScreen = () => {
   const [imageUrl, setImageUrl] = useState("");
 
   const handleAddImage = () => {
-    // Find the first empty slot in the array
     const index = imageUrls.findIndex((url) => url === "");
     if (index !== -1) {
       const updatedUrls = [...imageUrls];
@@ -36,7 +35,6 @@ const PhotoScreen = () => {
   };
 
   useEffect(() => {
-    // Fetch the saved image URLs from AsyncStorage
     getRegistrationProgress("Photos").then((progressData) => {
       if (progressData && progressData.imageUrls) {
         setImageUrls(progressData.imageUrls);
@@ -45,10 +43,8 @@ const PhotoScreen = () => {
   }, []);
 
   const handleNext = () => {
-    // Save the current progress data including the image URLs
     saveRegistrationProgress("Photos", { imageUrls });
 
-    // Navigate to the next screen
     navigation.navigate("auth/registration/PromptScreen"); // Navigate to the appropriate screen
   };
 
