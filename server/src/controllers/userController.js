@@ -34,9 +34,9 @@ const getProfiles = async (req, res) => {
       _id: { $ne: userId },
     };
 
-    if (user.datingPreferences && user.datingPreferences.length > 0) {
-      filter.datingPreferences = user.datingPreferences;
-    }
+    // if (user.datingPreferences && user.datingPreferences.length > 0) {
+    //   filter.datingPreferences = user.datingPreferences;
+    // }
 
     if (user.type) {
       filter.type = user.type;
