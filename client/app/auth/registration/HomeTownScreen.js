@@ -31,10 +31,8 @@ const HomeTownScreen = () => {
 
   const handleNext = () => {
     if (hometown.trim() !== "") {
-      // Save the current progress data including the name
       saveRegistrationProgress("Hometown", { hometown });
     }
-    // Navigate to the next screen
     navigation.navigate("auth/registration/PhotoScreen");
   };
   return (

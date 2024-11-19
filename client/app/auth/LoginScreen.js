@@ -102,23 +102,12 @@ const LoginScreen = () => {
             color: "white",
           }}
         >
-          Hinge
+          Shimmering Connections
         </Text>
       </View>
 
       <KeyboardAvoidingView>
-        <View style={{ alignItems: "center" }}>
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              marginTop: 25,
-              color: "#581845",
-            }}
-          >
-            Desgined to be deleted
-          </Text>
-        </View>
+        <View style={{ alignItems: "center" }}></View>
 
         <View
           style={{
