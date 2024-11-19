@@ -1,22 +1,98 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const cloudinary = require("../utils/cloudinary");
+const formidable = require("formidable");
 
 const register = async (req, res) => {
   try {
-    const userData = req.body;
-    console.log(userData);
+    const { fields, files } = await doSomethingWithNodeRequest(req);
+    console.log("Parsed fields:", fields);
+    console.log("Parsed files:", files);
+
+    let { prompts, imageUrls, ...userData } = fields;
+
+    if (typeof imageUrls === "string") {
+      try {
+        imageUrls = JSON.parse(imageUrls);
+      } catch (parseError) {
+        return res.status(400).json({
+          message: "Invalid format for images",
+          error: parseError,
+        });
+      }
+    }
+
+    if (typeof prompts === "string") {
+      try {
+        prompts = JSON.parse(prompts);
+      } catch (parseError) {
+        return res.status(400).json({
+          message: "Invalid format for prompts",
+          error: parseError,
+        });
+      }
+    }
+
+    if (Array.isArray(prompts)) {
+      prompts = prompts
+        .map((prompt) => {
+          if (
+            typeof prompt.question === "string" &&
+            typeof prompt.answer === "string"
+          ) {
+            return {
+              question: prompt.question,
+              answer: prompt.answer,
+            };
+          } else {
+            return null;
+          }
+        })
+        .filter(Boolean);
+    } else {
+      return res.status(400).json({
+        message:
+          "Invalid format for prompts. Must be an array of objects with 'question' and 'answer' fields.",
+      });
+    }
+
+    userData.prompts = prompts || [];
+
+    const uploadedImageUrls = [];
+
+    if (files && files.image) {
+      const imageFiles = Array.isArray(files.image)
+        ? files.image
+        : [files.image];
+      for (const file of imageFiles) {
+        try {
+          const uploadResponse = await cloudinary.uploader.upload(
+            file.filepath
+          );
+          uploadedImageUrls.push(uploadResponse.secure_url);
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          return res
+            .status(500)
+            .json({ message: "Image upload failed", error: uploadError });
+        }
+      }
+    }
+
+    userData.imageUrls = Array.isArray(imageUrls)
+      ? [...imageUrls, ...uploadedImageUrls]
+      : uploadedImageUrls;
 
     const newUser = new User(userData);
-
     await newUser.save();
 
     const secretKey = crypto.randomBytes(32).toString("hex");
-
     const token = jwt.sign({ userId: newUser._id }, secretKey, {
       expiresIn: "1d",
     });
-    res.status(201).json({ token });
+
+    res.status(201).json({ token, user: newUser });
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -24,13 +100,15 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const secretKey = crypto.randomBytes(32).toString("hex");
   try {
+    const secretKey = crypto.randomBytes(32).toString("hex");
     const { email, password } = req.body;
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(400).json({ message: "User does not exist" });
     }
+
     if (user.password !== password) {
       return res.status(400).json({ message: "Invalid password" });
     }
@@ -38,9 +116,8 @@ const login = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, secretKey, {
       expiresIn: "1h",
     });
-    return res
-      .status(200)
-      .json({ message: "User logged in successfully", token });
+
+    res.status(200).json({ message: "User logged in successfully", token });
   } catch (error) {
     res.status(500).json({ message: "Login failed", error });
   }
@@ -52,18 +129,34 @@ const verifyGender = async (req, res) => {
     const { gender } = req.body;
     const user = await User.findByIdAndUpdate(
       userId,
-      { gender: gender },
+      { gender },
       { new: true }
     );
-    console.log(user);
+
     if (!user) {
       return res.status(400).json({ message: "User does not exist" });
     }
+
     res.status(200).json({ message: "User gender updated Successfully", user });
   } catch (error) {
     res.status(500).json({ message: "Verification failed", error });
   }
 };
+
+function doSomethingWithNodeRequest(req) {
+  return new Promise((resolve, reject) => {
+    const form = formidable({ multiples: true, keepExtensions: true });
+    form.parse(req, (error, fields, files) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      console.log("Parsed Fields: ", fields);
+      console.log("Parsed Files: ", files);
+      resolve({ fields, files });
+    });
+  });
+}
 
 const authController = {
   login,

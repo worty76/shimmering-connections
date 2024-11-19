@@ -17,6 +17,7 @@ var corsOptions = {
   optionSuccessStatus: 200,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 };
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(
