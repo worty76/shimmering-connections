@@ -25,15 +25,12 @@ const PreFinalScreen = () => {
   console.log(token);
 
   useEffect(() => {
-    // Check if the token is set and not in loading state
     if (token) {
-      // Navigate to the main screen
       navigation.navigate("MainStack", { screen: "Main" });
     }
   }, [token, navigation]);
   const getAllUserData = async () => {
     try {
-      // Define an array to store data for each screen
       const screens = [
         "Name",
         "Email",
@@ -47,20 +44,19 @@ const PreFinalScreen = () => {
         "Hometown",
         "Photos",
         "Prompts",
-      ]; // Add more screens as needed
+      ];
 
-      // Define an object to store user data
       let userData = {};
 
-      // Retrieve data for each screen and add it to the user data object
       for (const screenName of screens) {
         const screenData = await getRegistrationProgress(screenName);
         if (screenData) {
-          userData = { ...userData, ...screenData }; // Merge screen data into user data
+          userData = { ...userData, ...screenData };
         }
       }
 
-      // Return the combined user data
+      console.log(userData);
+
       setUserData(userData);
     } catch (error) {
       console.error("Error retrieving user data:", error);
@@ -81,7 +77,6 @@ const PreFinalScreen = () => {
         "Hometown",
         "Photos",
       ];
-      // Loop through each screen and remove its data from AsyncStorage
       for (const screenName of screens) {
         const key = `registration_progress_${screenName}`;
         await AsyncStorage.removeItem(key);
@@ -94,24 +89,56 @@ const PreFinalScreen = () => {
 
   const registerUser = async () => {
     try {
-      const response = await axios
-        .post(`${api.API_URL}/api/auth/register`, userData)
-        .then((response) => {
-          console.log(response);
-          const token = response.data.token;
-          AsyncStorage.setItem("token", token);
-          setToken(token);
-        });
+      const formData = new FormData();
+      for (const key in userData) {
+        if (key === "imageUrls" && Array.isArray(userData[key])) {
+          userData[key].forEach((item, index) => {
+            if (typeof item === "string") {
+              // Append the image URI directly as a string
+              formData.append("imageUrls", item);
+            } else {
+              console.log(
+                `Unexpected item type for image at index ${index}:`,
+                item
+              );
+            }
+          });
+        } else if (key === "prompts") {
+          formData.append(key, JSON.stringify(userData[key]));
+        } else {
+          formData.append(key, userData[key]);
+        }
+      }
 
-      navigation.navigate("tabs/index", { screen: "tabs/index" });
+      // Debug: Log the `FormData` entries
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
+      }
 
-      clearAllScreenData();
+      const response = await axios.post(
+        `${api.API_URL}/api/auth/register`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        console.log(response);
+        const token = response.data.token;
+        await AsyncStorage.setItem("token", token);
+        setToken(token);
+        navigation.navigate("tabs/index", { screen: "tabs/index" });
+        clearAllScreenData();
+      }
     } catch (error) {
       console.error("Error registering user:", error);
       throw error;
     }
   };
-  console.log("user data", userData);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <View style={{ marginTop: 80 }}>

@@ -79,7 +79,7 @@ const PromptScreen = () => {
       saveRegistrationProgress("Prompts", { prompts: route.params.prompts });
       navigation.navigate("auth/registration/PreFinalScreen");
     } else {
-      console.error("No prompts found in route.params");
+      navigation.navigate("auth/registration/PreFinalScreen");
     }
   };
   return (
@@ -270,101 +270,6 @@ const PromptScreen = () => {
               </Pressable>
             </View>
           )}
-          {/* {route?.params?.prompts?.map((item, index) => (
-            <Pressable
-              onPress={() => navigation.navigate('ShowPrompts')}
-              style={{
-                borderColor: '#707070',
-                borderWidth: 2,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderStyle: 'dashed',
-                borderRadius: 10,
-                height: 70,
-              }}>
-              <Text
-                style={{
-                  fontWeight: '600',
-                  fontStyle: 'italic',
-                  fontSize: 15,
-                }}>
-                {item?.question}
-              </Text>
-              <Text
-                style={{
-                  fontWeight: '600',
-                  fontStyle: 'italic',
-                  fontSize: 15,
-                  marginTop: 3,
-                }}>
-                {item?.answer}
-              </Text>
-            </Pressable>
-          ))}
-
-          <Pressable
-            onPress={() => navigation.navigate('ShowPrompts')}
-            style={{
-              borderColor: '#707070',
-              borderWidth: 2,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderStyle: 'dashed',
-              borderRadius: 10,
-              height: 70,
-            }}>
-            <Text
-              style={{
-                color: 'gray',
-                fontWeight: '600',
-                fontStyle: 'italic',
-                fontSize: 15,
-              }}>
-              Select a Prompt
-            </Text>
-            <Text
-              style={{
-                color: 'gray',
-                fontWeight: '600',
-                fontStyle: 'italic',
-                fontSize: 15,
-                marginTop: 3,
-              }}>
-              And write your own answer
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => navigation.navigate('ShowPrompts')}
-            style={{
-              borderColor: '#707070',
-              borderWidth: 2,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderStyle: 'dashed',
-              borderRadius: 10,
-              height: 70,
-            }}>
-            <Text
-              style={{
-                color: 'gray',
-                fontWeight: '600',
-                fontStyle: 'italic',
-                fontSize: 15,
-              }}>
-              Select a Prompt
-            </Text>
-            <Text
-              style={{
-                color: 'gray',
-                fontWeight: '600',
-                fontStyle: 'italic',
-                fontSize: 15,
-                marginTop: 3,
-              }}>
-              And write your own answer
-            </Text>
-          </Pressable> */}
         </View>
 
         <TouchableOpacity
