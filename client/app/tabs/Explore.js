@@ -61,6 +61,7 @@ const Explore = ({ navigation }) => {
       const params = { userId: userId };
       const res = await axios.get(url, { params });
       setUsers(res?.data?.matches || []);
+      console.log(res);
       setUserIndex(0);
       setLoading(false);
     } catch (error) {
@@ -116,7 +117,7 @@ const Explore = ({ navigation }) => {
           imageUrls={user.imageUrls}
           userInfo={{
             firstName: user.firstName,
-            age: user.lastName,
+            age: user.dateOfBirth,
             location: user.hometown,
           }}
         />

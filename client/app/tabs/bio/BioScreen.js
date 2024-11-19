@@ -21,6 +21,7 @@ import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "@/context/AuthContext";
 
 const screenWidth = Dimensions.get("window").width;
+const carouselHeight = screenWidth * (9 / 16);
 
 const Profile = () => {
   const [userId, setUserId] = useState("");
@@ -176,8 +177,7 @@ const Profile = () => {
             {profileImages.length > 0 ? (
               <Carousel
                 width={screenWidth * 0.9}
-                height={300}
-                data={profileImages}
+                data={profileImages.filter((img) => img !== "")}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => index.toString()}
               />
@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   profileImageContainer: {
+    height: carouselHeight * 1.4,
     marginBottom: 20,
     alignItems: "center",
   },
