@@ -3,69 +3,83 @@ import {
   Text,
   View,
   SafeAreaView,
-  TouchableOpacity,
-  Image,
-  TextInput,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import AntDesign from "react-native-vector-icons/AntDesign";
+import RNPickerSelect from "react-native-picker-select";
 import { useNavigation } from "@react-navigation/native";
 import {
   getRegistrationProgress,
   saveRegistrationProgress,
 } from "../../../helpers/registrationUtils";
+import provinceDistrictData from "../../../constants/location";
 
 const HomeTownScreen = () => {
-  const [hometown, setHometown] = useState("");
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const navigation = useNavigation();
 
   useEffect(() => {
     getRegistrationProgress("Hometown").then((progressData) => {
       if (progressData) {
-        setHometown(progressData.hometown || "");
+        setSelectedProvince(progressData.province || "");
+        setSelectedDistrict(progressData.district || "");
       }
     });
   }, []);
 
   const handleNext = () => {
-    if (hometown.trim() === "") {
+    if (!selectedProvince || !selectedDistrict) {
       Alert.alert(
         "Validation Error",
-        "Please enter your hometown before proceeding."
+        "Please select both your province and district before proceeding."
       );
       return;
     }
-    saveRegistrationProgress("Hometown", { hometown });
+    saveRegistrationProgress("Hometown", {
+      province: selectedProvince,
+      district: selectedDistrict,
+    });
     navigation.navigate("auth/registration/PhotoScreen");
   };
+
+  const districts =
+    selectedProvince && provinceDistrictData[selectedProvince]
+      ? provinceDistrictData[selectedProvince]
+      : [];
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contentContainer}>
-        <View style={styles.headerContainer}>
-          <View style={styles.iconContainer}>
-            <AntDesign name="home" size={22} color="black" />
-          </View>
-          <Image
-            style={styles.logo}
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/10613/10613685.png",
-            }}
-          />
-        </View>
+        <Text style={styles.titleText}>Select your home town</Text>
 
-        <Text style={styles.titleText}>Where's your home town?</Text>
+        <Text style={styles.labelText}>Province</Text>
+        <RNPickerSelect
+          onValueChange={(value) => {
+            setSelectedProvince(value);
+            setSelectedDistrict("");
+          }}
+          value={selectedProvince}
+          placeholder={{ label: "Choose a province", value: "" }}
+          items={Object.keys(provinceDistrictData).map((province) => ({
+            label: province,
+            value: province,
+          }))}
+          style={pickerSelectStyles}
+        />
 
-        <TextInput
-          value={hometown}
-          onChangeText={(text) => setHometown(text)}
-          style={styles.inputField}
-          placeholder="Enter your hometown"
-          placeholderTextColor="#BEBEBE"
-          autoFocus={true}
-          keyboardType="default"
+        <Text style={styles.labelText}>District</Text>
+        <RNPickerSelect
+          onValueChange={(value) => setSelectedDistrict(value)}
+          value={selectedDistrict}
+          placeholder={{ label: "Choose a district", value: "" }}
+          items={districts.map((district) => ({
+            label: district,
+            value: district,
+          }))}
+          style={pickerSelectStyles}
+          disabled={!selectedProvince}
         />
 
         <TouchableOpacity
@@ -73,11 +87,7 @@ const HomeTownScreen = () => {
           activeOpacity={0.8}
           style={styles.nextButton}
         >
-          <MaterialCommunityIcons
-            name="arrow-right-circle"
-            size={45}
-            color="#581845"
-          />
+          <Text style={styles.nextButtonText}>Next</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -90,48 +100,51 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
+    paddingHorizontal: 20,
   },
   contentContainer: {
-    marginTop: 90,
-    marginHorizontal: 20,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: "black",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logo: {
-    width: 100,
-    height: 40,
-    marginLeft: 10,
+    margin: 20,
   },
   titleText: {
-    fontSize: 25,
+    fontSize: 24,
     fontWeight: "bold",
-    marginTop: 20,
+    marginBottom: 20,
     color: "#333",
+    textAlign: "center",
   },
-  inputField: {
-    width: "100%",
-    marginTop: 40,
+  labelText: {
     fontSize: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    color: "#000",
-    borderRadius: 5,
+    fontWeight: "600",
+    marginVertical: 10,
+    color: "#444",
   },
   nextButton: {
     marginTop: 30,
-    alignSelf: "flex-end",
+    backgroundColor: "#581845",
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  nextButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
+
+const pickerSelectStyles = {
+  inputIOS: {
+    backgroundColor: "#f2f2f2",
+    padding: 12,
+    borderRadius: 8,
+    color: "#333",
+    marginBottom: 15,
+  },
+  inputAndroid: {
+    backgroundColor: "#f2f2f2",
+    padding: 12,
+    borderRadius: 8,
+    color: "#333",
+    marginBottom: 15,
+  },
+};

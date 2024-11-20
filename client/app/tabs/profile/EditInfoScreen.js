@@ -14,6 +14,7 @@ import axios from "axios";
 import api from "../../../constants/api";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import RNPickerSelect from "react-native-picker-select";
+import provinceDistrictData from "../../../constants/location";
 
 const EditInfoScreen = () => {
   const route = useRoute();
@@ -25,11 +26,14 @@ const EditInfoScreen = () => {
     lastName: "",
     gender: "",
     dateOfBirth: "",
-    hometown: "",
+    province: "",
+    district: "",
     lookingFor: "",
     datingPreferences: [],
     prompts: [{ question: "", answer: "" }],
   });
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const [isModalVisible, setModalVisible] = useState(false);
   const [availablePrompts, setAvailablePrompts] = useState([]);
   const [selectedPrompt, setSelectedPrompt] = useState("");
@@ -61,6 +65,8 @@ const EditInfoScreen = () => {
         );
         if (response.status === 200) {
           setUser(response.data.user);
+          setSelectedProvince(response.data.user.province || "");
+          setSelectedDistrict(response.data.user.district || "");
         } else {
           alert("Failed to fetch user data");
         }
@@ -76,6 +82,15 @@ const EditInfoScreen = () => {
 
   const handleInputChange = (field, value) => {
     setUser((prev) => ({ ...prev, [field]: value }));
+
+    if (field === "province") {
+      setSelectedProvince(value);
+      setSelectedDistrict("");
+    }
+
+    if (field === "district") {
+      setSelectedDistrict(value);
+    }
   };
 
   const openAddPromptModal = () => {
@@ -115,7 +130,11 @@ const EditInfoScreen = () => {
     setIsLoading(true);
 
     try {
-      const updatedUserData = user;
+      const updatedUserData = {
+        ...user,
+        province: selectedProvince,
+        district: selectedDistrict,
+      };
       const response = await axios.put(
         `${api.API_URL}/api/user/update-profile/${userId}`,
         updatedUserData
@@ -132,6 +151,11 @@ const EditInfoScreen = () => {
       setIsLoading(false);
     }
   };
+
+  const districts =
+    selectedProvince && provinceDistrictData[selectedProvince]
+      ? provinceDistrictData[selectedProvince]
+      : [];
 
   return (
     <>
@@ -170,11 +194,29 @@ const EditInfoScreen = () => {
             placeholder="Date of Birth (YYYY-MM-DD)"
             onChangeText={(text) => handleInputChange("dateOfBirth", text)}
           />
-          <TextInput
-            style={styles.input}
-            value={user.hometown}
-            placeholder="Hometown"
-            onChangeText={(text) => handleInputChange("hometown", text)}
+          <Text style={styles.label}>Province</Text>
+          <RNPickerSelect
+            onValueChange={(value) => handleInputChange("province", value)}
+            value={user.province}
+            placeholder={{ label: "Select Province", value: "" }}
+            items={Object.keys(provinceDistrictData).map((province) => ({
+              label: province,
+              value: province,
+            }))}
+            style={pickerSelectStyles}
+          />
+
+          <Text style={styles.label}>District</Text>
+          <RNPickerSelect
+            onValueChange={(value) => handleInputChange("district", value)}
+            value={user.district}
+            placeholder={{ label: "Select District", value: "" }}
+            items={districts.map((district) => ({
+              label: district,
+              value: district,
+            }))}
+            style={pickerSelectStyles}
+            disabled={!user.province}
           />
         </View>
 
