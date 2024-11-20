@@ -72,11 +72,11 @@ Shimmering Connections is a modern dating app designed to create meaningful conn
 4. **Start the server**
    ```
    cd server
-   node index.js
+   npm start
 5. **Run the app**
    ```
    cd client
-   expo start
+   npm start
 ### Usage
 - Sign up or log in to access the app.
 - Create a profile by adding your details and uploading profile pictures.
