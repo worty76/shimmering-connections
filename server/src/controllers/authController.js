@@ -61,27 +61,30 @@ const register = async (req, res) => {
 
     const uploadedImageUrls = [];
 
-    if (files && files.image) {
-      const imageFiles = Array.isArray(files.image)
-        ? files.image
-        : [files.image];
+    if (imageUrls) {
+      const imageFiles = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
       for (const file of imageFiles) {
-        try {
-          const uploadResponse = await cloudinary.uploader.upload(
-            file.filepath
-          );
-          uploadedImageUrls.push(uploadResponse.secure_url);
-        } catch (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          return res
-            .status(500)
-            .json({ message: "Image upload failed", error: uploadError });
+        if (file === "") {
+          uploadedImageUrls.push(file);
+          continue;
+        } else {
+          try {
+            const uploadResponse = await cloudinary.uploader.upload(file, {
+              folder: "user_uploads",
+            });
+            uploadedImageUrls.push(uploadResponse.secure_url);
+          } catch (uploadError) {
+            console.error("Error uploading image:", uploadError);
+            return res
+              .status(500)
+              .json({ message: "Image upload failed", error: uploadError });
+          }
         }
       }
     }
 
     userData.imageUrls = Array.isArray(imageUrls)
-      ? [...imageUrls, ...uploadedImageUrls]
+      ? [...uploadedImageUrls]
       : uploadedImageUrls;
 
     const newUser = new User(userData);
