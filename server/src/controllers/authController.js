@@ -59,8 +59,25 @@ const register = async (req, res) => {
 
     userData.prompts = prompts || [];
 
-    const uploadedImageUrls = [];
+    if (userData.dateOfBirth) {
+      const [day, month, year] = userData.dateOfBirth.split("/").map(Number);
+      if (!day || !month || !year) {
+        return res.status(400).json({
+          message: "Invalid format for dateOfBirth. Must be 'DD/MM/YYYY'.",
+        });
+      }
+      const today = new Date();
+      let age = today.getFullYear() - year;
+      const birthMonthDay = new Date(year, month - 1, day);
+      if (today < birthMonthDay) {
+        age -= 1;
+      }
+      userData.age = age;
+    } else {
+      return res.status(400).json({ message: "dateOfBirth is required." });
+    }
 
+    const uploadedImageUrls = [];
     if (imageUrls) {
       const imageFiles = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
       for (const file of imageFiles) {
