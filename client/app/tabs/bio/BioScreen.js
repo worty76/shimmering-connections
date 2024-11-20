@@ -7,12 +7,14 @@ import {
   View,
   ActivityIndicator,
   Dimensions,
+  TextInput,
+  Modal,
+  FlatList,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { Entypo, AntDesign } from "@expo/vector-icons";
 import Carousel from "react-native-reanimated-carousel";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { useNavigation } from "@react-navigation/native";
@@ -26,7 +28,11 @@ const Profile = () => {
   const [userId, setUserId] = useState("");
   const [user, setUser] = useState({});
   const [profileImages, setProfileImages] = useState([]);
+  const [bio, setBio] = useState(""); // State for bio
+  const [suggestions, setSuggestions] = useState([]); // State for suggestions
   const [loading, setLoading] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
@@ -55,12 +61,36 @@ const Profile = () => {
       const data = response?.data?.user;
       setUser(data);
       setProfileImages(data?.imageUrls || []);
+      setBio(data?.bio || ""); // Load bio from backend
     } catch (error) {
       console.error("Error fetching profile data:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchSuggestions = async () => {
+    setSuggestionsLoading(true);
+    try {
+      const response = await axios.get(
+        `${api.API_URL}/api/user/generate-bio/${userId}`
+      );
+      const generatedBio = response?.data?.bio || "No bio generated.";
+
+      setBio(generatedBio);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+      alert("Failed to fetch a bio suggestion.");
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  const renderSuggestionItem = ({ item }) => (
+    <View style={styles.suggestionItem}>
+      <Text style={styles.suggestionText}>{item}</Text>
+    </View>
+  );
 
   const pickImage = async () => {
     navigation.navigate("EditPhotosScreen", {
@@ -112,18 +142,25 @@ const Profile = () => {
                 {user.firstName} {user.lastName}
               </Text>
               <Text style={styles.userEmail}>{user.email}</Text>
-              <View style={styles.middleContent}>
-                <View style={styles.statContainer}>
-                  <Text style={styles.statNumber}>{user.likesCount || 0}</Text>
-                  <Text style={styles.statLabel}>Likes</Text>
-                </View>
-                <View style={styles.statContainer}>
-                  <Text style={styles.statNumber}>
-                    {user.matchesCount || 0}
-                  </Text>
-                  <Text style={styles.statLabel}>Matches</Text>
-                </View>
-              </View>
+              <TextInput
+                style={styles.bioInput}
+                value={bio}
+                onChangeText={(text) => setBio(text)}
+                placeholder="Enter your bio..."
+                placeholderTextColor="#888"
+                multiline
+              />
+              <Pressable
+                onPress={fetchSuggestions}
+                style={styles.suggestionsButton}
+                disabled={suggestionsLoading}
+              >
+                <Text style={styles.suggestionsButtonText}>
+                  {suggestionsLoading
+                    ? "Loading..."
+                    : "Get random bio based on your prompts"}
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={() =>
                   navigation.navigate("tabs/profile/EditInfoScreen", { userId })
@@ -137,6 +174,32 @@ const Profile = () => {
           </>
         )}
       </ScrollView>
+
+      {/* Suggestions Modal */}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Suggestions</Text>
+            <FlatList
+              data={suggestions}
+              renderItem={renderSuggestionItem}
+              keyExtractor={(item, index) => index.toString()}
+            />
+            <Pressable
+              onPress={() => setIsModalVisible(false)}
+              style={styles.closeModalButton}
+            >
+              <Text style={styles.closeModalText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       <Pressable onPress={handleLogout} style={styles.logoutButton}>
         <Text style={styles.logoutText}>Log Out</Text>
       </Pressable>
@@ -173,7 +236,6 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
     borderWidth: 0.5,
     borderColor: "pink",
-    transform: [{ rotate: "-5deg" }],
   },
   deleteIcon: {
     position: "absolute",
@@ -215,25 +277,64 @@ const styles = StyleSheet.create({
     color: "gray",
     marginVertical: 5,
   },
-  middleContent: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "80%",
-    gap: 10,
-    marginVertical: 15,
+  bioInput: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    padding: 10,
+    color: "#333",
+    width: "90%",
+    marginVertical: 10,
+    textAlignVertical: "top",
   },
-  statContainer: {
+  suggestionsButton: {
+    backgroundColor: "#008B8B",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  suggestionsButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "90%",
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
     alignItems: "center",
   },
-  statNumber: {
-    fontSize: 24,
+  modalTitle: {
+    fontSize: 20,
     fontWeight: "bold",
-    color: "#008B8B",
+    marginBottom: 10,
   },
-  statLabel: {
+  suggestionItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+  },
+  suggestionText: {
     fontSize: 16,
-    color: "#555",
+    color: "#333",
+  },
+  closeModalButton: {
+    marginTop: 20,
+    backgroundColor: "#900C3F",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  closeModalText: {
+    color: "white",
+    fontSize: 16,
   },
   editButton: {
     flexDirection: "row",

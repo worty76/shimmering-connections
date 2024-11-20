@@ -46,7 +46,9 @@ const UserCard = ({ imageUrls, onPress, userInfo }) => {
               <Text style={styles.userName}>
                 {`${userInfo.firstName}, ${userInfo.age}`}
               </Text>
-              <Text style={styles.userLocation}>{userInfo.location}</Text>
+              <Text style={styles.userLocation}>
+                {userInfo.province}, {userInfo.district}
+              </Text>
             </View>
           </View>
         </Animatable.View>
