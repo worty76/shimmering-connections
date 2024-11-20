@@ -4,21 +4,20 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { Entypo, AntDesign } from "@expo/vector-icons";
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 import Carousel from "react-native-reanimated-carousel";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../../../constants/api";
 import * as ImagePicker from "expo-image-picker";
-import { Dimensions } from "react-native";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "@/context/AuthContext";
+import api from "../../../constants/api";
 
 const screenWidth = Dimensions.get("window").width;
 const carouselHeight = screenWidth * (9 / 16);
@@ -28,8 +27,6 @@ const Profile = () => {
   const [user, setUser] = useState({});
   const [profileImages, setProfileImages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [updatedProfile, setUpdatedProfile] = useState({});
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
@@ -39,7 +36,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (userId) {
-      getData();
+      fetchProfileData();
     }
   }, [userId]);
 
@@ -49,268 +46,215 @@ const Profile = () => {
     setUserId(decodedToken.userId);
   };
 
-  const getData = async () => {
+  const fetchProfileData = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get(`${api.API_URL}/api/user/profile/${userId}`);
-      if (res.status !== 200) {
-        alert("Error fetching data");
-        return;
-      }
-      const data = res?.data?.user;
-      setUser(data);
-      setUpdatedProfile(data);
-      setProfileImages(data?.imageUrls);
-    } catch (error) {
-      console.error("Error fetching user data", error);
-    }
-  };
-
-  const updateUserProfile = async () => {
-    try {
-      const res = await axios.put(
-        `${api.API_URL}/api/user/update-profile/${userId}`,
-        updatedProfile
+      const response = await axios.get(
+        `${api.API_URL}/api/user/profile/${userId}`
       );
-      if (res.status !== 200) {
-        alert("Error updating profile");
-        return;
-      }
-      alert("Profile updated successfully");
-      getData();
+      const data = response?.data?.user;
+      setUser(data);
+      setProfileImages(data?.imageUrls || []);
     } catch (error) {
-      console.error("Error updating profile", error);
+      console.error("Error fetching profile data:", error);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleEditChange = (field, value) => {
-    setUpdatedProfile((prev) => ({ ...prev, [field]: value }));
   };
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
+    navigation.navigate("EditPhotosScreen", {
+      currentImages: profileImages,
+      userId: userId,
     });
-
-    if (!result.canceled) {
-      // Add your upload logic or update state with the new image URI
-      alert("Image picked successfully!");
-    }
   };
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      alert("Logged out successfully");
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "auth/login" }],
-      });
-    } catch (error) {
-      console.error("Error during logout", error);
-    }
+    await logout();
+    navigation.reset({ index: 0, routes: [{ name: "auth/login" }] });
   };
 
-  const renderItem = ({ item }) => {
-    return (
-      <View
-        style={{
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-          height: 300,
-        }}
-      >
-        <Image
-          source={{
-            uri: item,
-          }}
-          style={{
-            width: "90%",
-            height: 250,
-            borderRadius: 10,
-            resizeMode: "cover",
-            transform: [{ rotate: "-5deg" }],
-            borderWidth: 0.5,
-            borderColor: "pink",
-          }}
-        />
-        <Pressable
-          onPress={() => uploadImage(item)}
-          style={{
-            position: "absolute",
-            top: 10,
-            left: 10,
-            backgroundColor: "white",
-            borderRadius: 20,
-            padding: 5,
-            elevation: 5,
-            shadowColor: "black",
-            shadowOffset: { width: 0, height: 2 },
-          }}
-        >
-          <AntDesign name="delete" size={26} color="red" />
-        </Pressable>
-        <Text
-          style={{
-            position: "absolute",
-            top: 10,
-            right: 10,
-            color: "pink",
-            fontWeight: "bold",
-            fontSize: 16,
-          }}
-        >
-          {activeIndex + 1}/{profileImages?.length}
-        </Text>
-      </View>
-    );
-  };
+  const renderItem = ({ item }) => (
+    <View style={styles.carouselItem}>
+      <Image source={{ uri: item }} style={styles.carouselImage} />
+      <Pressable style={styles.deleteIcon}>
+        <AntDesign name="delete" size={26} color="red" />
+      </Pressable>
+    </View>
+  );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="pink" />
-      ) : (
-        <>
-          <View style={styles.profileImageContainer}>
-            {profileImages.length > 0 ? (
-              <Carousel
-                width={screenWidth * 0.9}
-                data={profileImages.filter((img) => img !== "")}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            ) : (
-              <Text style={styles.noImagesText}>No images available</Text>
-            )}
-            <Pressable onPress={pickImage} style={styles.uploadButton}>
-              <Entypo name="camera" size={24} color="gray" />
-              <Text style={styles.uploadText}>Upload Photo</Text>
-            </Pressable>
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>
-              {user.firstName} {user.lastName}
-            </Text>
-            <Text style={styles.userEmail}>{user.email}</Text>
-            <Text style={styles.bioText}>
-              {user.desc || "No bio available"}
-            </Text>
-            <Pressable
-              onPress={() =>
-                navigation.navigate("tabs/profile/EditInfoScreen", { userId })
-              }
-              style={styles.editButton}
-            >
-              <AntDesign name="edit" size={20} color="white" />
-              <Text style={styles.editButtonText}>Edit Profile</Text>
-            </Pressable>
-          </View>
-          <Pressable onPress={handleLogout} style={styles.logoutButton}>
-            <Text style={styles.logoutText}>Log Out</Text>
-          </Pressable>
-        </>
-      )}
-    </ScrollView>
+    <View style={styles.mainContainer}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#900C3F" />
+        ) : (
+          <>
+            <View style={styles.imageSlider}>
+              {profileImages.length > 0 ? (
+                <Carousel
+                  width={screenWidth * 0.9}
+                  height={carouselHeight}
+                  data={profileImages}
+                  renderItem={renderItem}
+                  keyExtractor={(item, index) => index.toString()}
+                />
+              ) : (
+                <Text style={styles.noImagesText}>No images available</Text>
+              )}
+              <Pressable onPress={pickImage} style={styles.addImageButton}>
+                <Entypo name="camera" size={24} color="white" />
+                <Text style={styles.addImageText}>Add Photo</Text>
+              </Pressable>
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>
+                {user.firstName} {user.lastName}
+              </Text>
+              <Text style={styles.userEmail}>{user.email}</Text>
+              <View style={styles.middleContent}>
+                <View style={styles.statContainer}>
+                  <Text style={styles.statNumber}>{user.likesCount || 0}</Text>
+                  <Text style={styles.statLabel}>Likes</Text>
+                </View>
+                <View style={styles.statContainer}>
+                  <Text style={styles.statNumber}>
+                    {user.matchesCount || 0}
+                  </Text>
+                  <Text style={styles.statLabel}>Matches</Text>
+                </View>
+              </View>
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("tabs/profile/EditInfoScreen", { userId })
+                }
+                style={styles.editButton}
+              >
+                <AntDesign name="edit" size={20} color="white" />
+                <Text style={styles.editText}>Edit Profile</Text>
+              </Pressable>
+            </View>
+          </>
+        )}
+      </ScrollView>
+      <Pressable onPress={handleLogout} style={styles.logoutButton}>
+        <Text style={styles.logoutText}>Log Out</Text>
+      </Pressable>
+    </View>
   );
 };
 
 export default Profile;
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "#F9F9F9",
+  },
   container: {
     alignItems: "center",
     padding: 20,
   },
-  profileImageContainer: {
+  imageSlider: {
     height: carouselHeight * 1.4,
     marginBottom: 20,
     alignItems: "center",
   },
-  profileImage: {
-    width: screenWidth * 0.9,
-    height: 300,
-    borderRadius: 20,
+  carouselItem: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    height: carouselHeight,
+  },
+  carouselImage: {
+    width: "90%",
+    height: "100%",
+    borderRadius: 10,
     resizeMode: "cover",
-    borderWidth: 1,
-    borderColor: "#ddd",
+    borderWidth: 0.5,
+    borderColor: "pink",
+    transform: [{ rotate: "-5deg" }],
+  },
+  deleteIcon: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 5,
   },
   noImagesText: {
-    fontSize: 18,
-    color: "gray",
-    marginTop: 20,
-  },
-  uploadButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 5,
-  },
-  uploadText: {
-    marginLeft: 5,
     fontSize: 16,
     color: "gray",
+    textAlign: "center",
+  },
+  addImageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#900C3F",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  addImageText: {
+    color: "white",
+    fontSize: 16,
+    marginLeft: 5,
   },
   userInfo: {
     alignItems: "center",
-    marginVertical: 15,
+    marginTop: 20,
   },
   userName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
+    color: "#333",
   },
   userEmail: {
     fontSize: 16,
     color: "gray",
+    marginVertical: 5,
   },
-  bioText: {
-    marginTop: 10,
+  middleContent: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "80%",
+    gap: 10,
+    marginVertical: 15,
+  },
+  statContainer: {
+    alignItems: "center",
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#008B8B",
+  },
+  statLabel: {
     fontSize: 16,
-    textAlign: "center",
-    paddingHorizontal: 20,
-  },
-  input: {
-    width: "90%",
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-    fontSize: 16,
-  },
-  saveButton: {
-    backgroundColor: "green",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  saveButtonText: {
-    color: "white",
-    fontSize: 16,
-    textAlign: "center",
+    color: "#555",
   },
   editButton: {
     flexDirection: "row",
-    backgroundColor: "blue",
+    alignItems: "center",
+    backgroundColor: "#008B8B",
     padding: 10,
     borderRadius: 5,
-    marginTop: 10,
-    alignItems: "center",
+    marginTop: 15,
   },
-  editButtonText: {
+  editText: {
     color: "white",
     fontSize: 16,
     marginLeft: 5,
   },
   logoutButton: {
-    backgroundColor: "red",
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 20,
-    alignItems: "center",
+    backgroundColor: "#D9534F",
+    paddingVertical: 15,
+    paddingHorizontal: 50,
+    borderRadius: 5,
+    alignSelf: "center",
+    marginVertical: 20,
   },
   logoutText: {
     color: "white",

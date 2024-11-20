@@ -1,78 +1,110 @@
 import {
-  Image,
-  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
-  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  Pressable,
+  Image,
+  Alert,
+  Platform,
 } from "react-native";
 import React, { useState, useEffect } from "react";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import AntDesign from "react-native-vector-icons/AntDesign";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import EvilIcons from "react-native-vector-icons/EvilIcons";
+import { useNavigation } from "@react-navigation/native";
 import {
   getRegistrationProgress,
   saveRegistrationProgress,
 } from "../../../helpers/registrationUtils";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
+import * as ImagePicker from "expo-image-picker";
 
-const PromptScreen = () => {
-  const route = useRoute();
+const PhotoScreen = () => {
   const navigation = useNavigation();
-  const [userData, setUserData] = useState();
+  const [imageUrls, setImageUrls] = useState(["", "", "", "", "", ""]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    getAllUserData();
+    getRegistrationProgress("Photos").then((progressData) => {
+      if (progressData && progressData.imageUrls) {
+        const loadedUrls =
+          progressData.imageUrls.length < 6
+            ? [
+                ...progressData.imageUrls,
+                ...new Array(6 - progressData.imageUrls.length).fill(""),
+              ]
+            : progressData.imageUrls;
+        setImageUrls(loadedUrls);
+      }
+    });
   }, []);
 
-  const getAllUserData = async () => {
-    try {
-      const screens = [
-        "Name",
-        "Email",
-        "Birth",
-        "Location",
-        "Gender",
-        "Type",
-        "Dating",
-        "LookingFor",
-        "Hometown",
-        "Photos",
-      ];
-
-      let userData = {};
-
-      for (const screenName of screens) {
-        const screenData = await getRegistrationProgress(screenName);
-        if (screenData) {
-          userData = { ...userData, ...screenData };
-        }
-      }
-
-      setUserData(userData);
-    } catch (error) {
-      console.error("Error retrieving user data:", error);
+  const showAlert = (title, message) => {
+    if (Platform.OS === "web") {
+      window.alert(`${title}: ${message}`);
+    } else {
+      Alert.alert(title, message, [{ text: "OK", onPress: () => {} }]);
     }
   };
 
-  const handleNext = () => {
-    if (route.params && route.params.prompts) {
-      saveRegistrationProgress("Prompts", { prompts: route.params.prompts });
-      navigation.navigate("auth/registration/PreFinalScreen");
-    } else {
-      navigation.navigate("auth/registration/PreFinalScreen");
+  const handleAddImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      showAlert(
+        "Permission Denied",
+        "We need camera roll permissions to proceed."
+      );
+      return;
     }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      const pickedImage = result.assets[0];
+      const index = imageUrls.findIndex((url) => url === "");
+      if (index !== -1) {
+        const updatedUrls = [...imageUrls];
+        updatedUrls[index] = pickedImage.uri;
+        setImageUrls(updatedUrls);
+      }
+    }
+  };
+
+  const handleNext = async () => {
+    if (imageUrls.filter((url) => url !== "").length < 1) {
+      showAlert("Minimum Photos Required", "Please add at least four photos.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      saveRegistrationProgress("Photos", { imageUrls });
+      navigation.navigate("auth/registration/PromptScreen");
+    } catch (error) {
+      console.error("Error saving photos:", error);
+      showAlert("Error", "Failed to save photos. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    const updatedUrls = [...imageUrls];
+    updatedUrls[index] = "";
+    setImageUrls(updatedUrls);
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.contentContainer}>
-        {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.iconContainer}>
-            <AntDesign name="eye" size={22} color="black" />
+            <MaterialIcons name="photo-camera-back" size={22} color="black" />
           </View>
           <Image
             style={styles.logo}
@@ -82,66 +114,66 @@ const PromptScreen = () => {
           />
         </View>
 
-        {/* Title */}
-        <Text style={styles.titleText}>Write your profile answers</Text>
+        <Text style={styles.titleText}>Pick your videos and photos</Text>
 
-        {/* Prompts */}
-        <View style={styles.promptsContainer}>
-          {route?.params?.prompts ? (
-            route?.params?.prompts.map((item, index) => (
-              <Pressable
-                key={index}
-                onPress={() =>
-                  navigation.navigate("auth/registration/ShowPromptScreen")
-                }
-                style={styles.promptBox}
-              >
-                <Text style={styles.promptQuestion}>{item?.question}</Text>
-                <Text style={styles.promptAnswer}>{item?.answer}</Text>
-              </Pressable>
-            ))
-          ) : (
-            <View>
-              {[...Array(3)].map((_, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() =>
-                    navigation.navigate("auth/registration/ShowPromptScreen")
-                  }
-                  style={styles.promptBox}
-                >
-                  <Text style={styles.placeholderText}>
-                    Select a Prompt and write your own answer
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
+        <View style={styles.photoGrid}>
+          {imageUrls.map((url, index) => (
+            <Pressable
+              key={index}
+              onLongPress={() => handleRemoveImage(index)}
+              style={[
+                styles.photoContainer,
+                url ? styles.filledPhotoContainer : styles.emptyPhotoContainer,
+              ]}
+            >
+              {url ? (
+                <Image source={{ uri: url }} style={styles.photo} />
+              ) : (
+                <EvilIcons name="image" size={30} color="#aaa" />
+              )}
+            </Pressable>
+          ))}
         </View>
 
-        {/* Next Button */}
-        <TouchableOpacity
-          onPress={handleNext}
-          activeOpacity={0.8}
-          style={styles.nextButton}
-        >
-          <MaterialCommunityIcons
-            name="arrow-right-circle"
-            size={45}
-            color="#581845"
-          />
+        <Text style={styles.instructionText}>Drag to reorder photos</Text>
+        <Text style={styles.subInstructionText}>
+          Add four to six photos to complete your profile.
+        </Text>
+
+        <TouchableOpacity style={styles.addButton} onPress={handleAddImage}>
+          <Text style={styles.addButtonText}>Add Photos</Text>
         </TouchableOpacity>
+
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#581845"
+            style={styles.loader}
+          />
+        ) : (
+          <TouchableOpacity
+            onPress={handleNext}
+            activeOpacity={0.8}
+            style={styles.nextButton}
+          >
+            <MaterialCommunityIcons
+              name="arrow-right-circle"
+              size={45}
+              color="#581845"
+            />
+          </TouchableOpacity>
+        )}
       </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
-export default PromptScreen;
+export default PhotoScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "#fff",
   },
   contentContainer: {
     marginTop: 90,
@@ -155,8 +187,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 2,
     borderColor: "black",
+    borderWidth: 2,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -171,43 +203,63 @@ const styles = StyleSheet.create({
     marginTop: 15,
     color: "#333",
   },
-  promptsContainer: {
+  photoGrid: {
     marginTop: 20,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    justifyContent: "space-between",
   },
-  promptBox: {
-    borderColor: "#707070",
-    borderWidth: 2,
+  photoContainer: {
+    width: "30%",
+    aspectRatio: 1,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
+  },
+  filledPhotoContainer: {
+    borderWidth: 0,
+  },
+  emptyPhotoContainer: {
+    borderWidth: 2,
+    borderColor: "#ddd",
     borderStyle: "dashed",
+    backgroundColor: "#f9f9f9",
+  },
+  photo: {
+    width: "100%",
+    height: "100%",
     borderRadius: 10,
-    paddingVertical: 20,
-    marginBottom: 15,
+    resizeMode: "cover",
   },
-  promptQuestion: {
-    fontWeight: "600",
-    fontSize: 15,
-    fontStyle: "italic",
-    textAlign: "center",
-    color: "#333",
-  },
-  promptAnswer: {
-    fontWeight: "600",
-    fontSize: 15,
-    fontStyle: "italic",
-    textAlign: "center",
-    marginTop: 5,
-    color: "#581845",
-  },
-  placeholderText: {
-    fontWeight: "600",
-    fontSize: 15,
-    fontStyle: "italic",
-    textAlign: "center",
+  instructionText: {
     color: "gray",
+    fontSize: 14,
+    marginTop: 10,
+  },
+  subInstructionText: {
+    color: "#581845",
+    fontSize: 14,
+    fontWeight: "500",
+    marginTop: 5,
+  },
+  addButton: {
+    backgroundColor: "#581845",
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 20,
+    alignItems: "center",
+  },
+  addButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
   nextButton: {
     marginTop: 30,
     alignSelf: "flex-end",
+  },
+  loader: {
+    marginTop: 30,
   },
 });

@@ -44,7 +44,6 @@ const HomeTownScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contentContainer}>
-        {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.iconContainer}>
             <AntDesign name="home" size={22} color="black" />
@@ -57,10 +56,8 @@ const HomeTownScreen = () => {
           />
         </View>
 
-        {/* Title */}
         <Text style={styles.titleText}>Where's your home town?</Text>
 
-        {/* Input Field */}
         <TextInput
           value={hometown}
           onChangeText={(text) => setHometown(text)}
@@ -71,7 +68,6 @@ const HomeTownScreen = () => {
           keyboardType="default"
         />
 
-        {/* Next Button */}
         <TouchableOpacity
           onPress={handleNext}
           activeOpacity={0.8}

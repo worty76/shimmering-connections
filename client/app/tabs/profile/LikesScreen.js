@@ -6,13 +6,14 @@ import {
   Pressable,
   Image,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import constants from "../../../constants/api";
 
@@ -21,330 +22,171 @@ const LikesScreen = () => {
   const [option, setOption] = useState("Recent");
   const [userId, setUserId] = useState("");
   const [likes, setLikes] = useState([]);
-  useEffect(() => {
-    console.log("hi");
-    const fetchUser = async () => {
-      const token = await AsyncStorage.getItem("token");
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.userId;
-      setUserId(userId);
-    };
+  const [loading, setLoading] = useState(false);
 
-    fetchUser();
-  }, []);
-  const fetchReceivedLikes = async () => {
+  const fetchUserId = async () => {
+    const token = await AsyncStorage.getItem("token");
+    const decodedToken = jwtDecode(token);
+    setUserId(decodedToken.userId);
+  };
+
+  const fetchLikes = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(
         `${constants.API_URL}/api/user/received-likes/${userId}`
       );
-      const receivedLikes = response.data.receivedLikes;
-      console.log(receivedLikes);
-      setLikes(receivedLikes);
+      setLikes(response.data.receivedLikes || []);
     } catch (error) {
       console.error("Error fetching received likes:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (userId) {
-      fetchReceivedLikes();
-    }
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    if (userId) fetchLikes();
   }, [userId]);
+
   useFocusEffect(
     useCallback(() => {
-      if (userId) {
-        fetchReceivedLikes();
-      }
+      if (userId) fetchLikes();
     }, [userId])
   );
-  console.log("likes", likes.length);
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F6" }}>
-      <ScrollView
-        style={{
-          marginTop: 55,
-          padding: 15,
-          flex: 1,
-          backgroundColor: "#FAF9F6",
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 23,
-              fontWeight: "bold",
-              fontFamily: "GeezaPro-Bold",
-              marginTop: 15,
-            }}
-          >
-            Likes You
-          </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 5,
-              backgroundColor: "#008B8B",
-              padding: 10,
-              borderRadius: 30,
-            }}
-          >
-            <SimpleLineIcons name="fire" size={24} color="white" />
-            <Text
-              style={{
-                textAlign: "center",
-                fontWeight: "bold",
-                color: "white",
-              }}
-            >
-              Boost
-            </Text>
-          </View>
-        </View>
 
-        <View
-          style={{
-            marginVertical: 20,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <View
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 19,
-              backgroundColor: "#D0D0D0",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Ionicons name="filter" size={22} color="black" />
-          </View>
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Likes You</Text>
+          <Pressable style={styles.boostButton}>
+            <SimpleLineIcons name="fire" size={24} color="white" />
+            <Text style={styles.boostText}>Boost</Text>
+          </Pressable>
+        </View>
+        <View style={styles.filters}>
           <Pressable
             onPress={() => setOption("Recent")}
-            style={{
-              borderColor: option == "Recent" ? "transparent" : "#808080",
-              borderWidth: 0.7,
-              padding: 10,
-              borderRadius: 20,
-              backgroundColor: option == "Recent" ? "black" : "transparent",
-            }}
+            style={[
+              styles.filterOption,
+              option === "Recent" && styles.activeOption,
+            ]}
           >
             <Text
-              style={{
-                textAlign: "center",
-                fontSize: 14,
-                fontWeight: "400",
-                color: option == "Recent" ? "white" : "#808080",
-              }}
+              style={[
+                styles.filterText,
+                option === "Recent" && styles.activeText,
+              ]}
             >
               Recent
             </Text>
           </Pressable>
           <Pressable
-            onPress={() => setOption("your type")}
-            style={{
-              borderColor: option == "your type" ? "transparent" : "#808080",
-              borderWidth: 0.7,
-              padding: 10,
-              borderRadius: 20,
-              backgroundColor: option == "your type" ? "black" : "transparent",
-            }}
+            onPress={() => setOption("Your Type")}
+            style={[
+              styles.filterOption,
+              option === "Your Type" && styles.activeOption,
+            ]}
           >
             <Text
-              style={{
-                textAlign: "center",
-                fontSize: 14,
-                fontWeight: "400",
-                color: option == "your type" ? "white" : "#808080",
-              }}
+              style={[
+                styles.filterText,
+                option === "Your Type" && styles.activeText,
+              ]}
             >
-              your type
+              Your Type
             </Text>
           </Pressable>
           <Pressable
             onPress={() => setOption("Last Active")}
-            style={{
-              borderColor: option == "Last Active" ? "transparent" : "#808080",
-              borderWidth: 0.7,
-              padding: 10,
-              borderRadius: 20,
-              backgroundColor:
-                option == "Last Active" ? "black" : "transparent",
-              likes: likes?.length,
-            }}
+            style={[
+              styles.filterOption,
+              option === "Last Active" && styles.activeOption,
+            ]}
           >
             <Text
-              style={{
-                textAlign: "center",
-                fontSize: 14,
-                fontWeight: "400",
-                color: option == "Last Active" ? "white" : "#808080",
-              }}
+              style={[
+                styles.filterText,
+                option === "Last Active" && styles.activeText,
+              ]}
             >
               Last Active
             </Text>
           </Pressable>
           <Pressable
             onPress={() => setOption("Nearby")}
-            style={{
-              borderColor: option == "Nearby" ? "transparent" : "#808080",
-              borderWidth: 0.7,
-              padding: 10,
-              borderRadius: 20,
-              backgroundColor: option == "Nearby" ? "black" : "transparent",
-            }}
+            style={[
+              styles.filterOption,
+              option === "Nearby" && styles.activeOption,
+            ]}
           >
             <Text
-              style={{
-                textAlign: "center",
-                fontSize: 14,
-                fontWeight: "400",
-                color: option == "Nearby" ? "white" : "#808080",
-              }}
+              style={[
+                styles.filterText,
+                option === "Nearby" && styles.activeText,
+              ]}
             >
               Nearby
             </Text>
           </Pressable>
         </View>
-
-        <View>
-          {likes.length > 0 && (
-            <Pressable
-              onPress={() =>
-                navigation.navigate("tabs/profile/HandleLikeScreen", {
-                  name: likes[0].userId?.firstName,
-                  image: likes[0].image,
-                  imageUrls: likes[0].userId?.imageUrls,
-                  prompts: likes[0].userId?.prompts,
-                  userId: userId,
-                  selectedUserId: likes[0].userId?._id,
-                  likes: likes?.length,
-                })
-              }
-              style={{
-                padding: 20,
-                borderColor: "#E0E0E0",
-                borderWidth: 1,
-                borderRadius: 7,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "flex-start",
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  backgroundColor: "#f0f0f0",
-                  borderRadius: 5,
-                  marginBottom: 8,
-                  width: 145,
-                }}
+        {loading ? (
+          <ActivityIndicator size="large" color="#008B8B" />
+        ) : (
+          <>
+            {likes.length > 0 && (
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("tabs/profile/HandleLikeScreen", {
+                    name: likes[0].userId?.firstName,
+                    image: likes[0].image,
+                    imageUrls: likes[0].userId?.imageUrls,
+                    prompts: likes[0].userId?.prompts,
+                    userId: userId,
+                    selectedUserId: likes[0].userId?._id,
+                  })
+                }
+                style={styles.mainLike}
               >
-                <View />
-                <View>
+                <View style={styles.likeInfo}>
                   <Text>Liked your photo</Text>
                 </View>
-              </View>
-              <Text style={{ fontSize: 22, fontWeight: "bold" }}>
-                {likes[0].userId?.firstName}
-              </Text>
-              <Image
-                source={{ uri: likes[0].userId?.imageUrls[0] }}
-                style={{
-                  width: "100%",
-                  height: 350,
-                  resizeMode: "cover",
-                  borderRadius: 10,
-                  marginTop: 20,
-                }}
-              />
-            </Pressable>
-          )}
-        </View>
-
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: "bold",
-            fontFamily: "GeezaPro-Bold",
-            marginTop: 20,
-          }}
-        >
-          Up Next
-        </Text>
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 20,
-          }}
-        >
-          {likes.slice(1).map((like, index) => (
-            <View style={{ marginVertical: 10, backgroundColor: "white" }}>
-              <View style={{ padding: 12 }}>
-                {like.comment ? (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "flex-start",
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      backgroundColor: "#F5F3C6",
-                      borderRadius: 5,
-                      marginBottom: 8,
-                      width: 145,
-                    }}
-                  >
-                    <View />
-                    <View>
-                      <Text>{like?.comment}</Text>
+                <Text style={styles.mainName}>
+                  {likes[0].userId?.firstName}
+                </Text>
+                <Image
+                  source={{ uri: likes[0].userId?.imageUrls[0] }}
+                  style={styles.mainImage}
+                />
+              </Pressable>
+            )}
+            <Text style={styles.upNextTitle}>Up Next</Text>
+            <View style={styles.upNextContainer}>
+              {likes.slice(1).map((like, index) => (
+                <View key={index} style={styles.nextLike}>
+                  {like.comment ? (
+                    <View style={styles.commentBox}>
+                      <Text>{like.comment}</Text>
                     </View>
-                  </View>
-                ) : (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "flex-start",
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      backgroundColor: "#f0f0f0",
-                      borderRadius: 5,
-                      marginBottom: 8,
-                      width: 145,
-                    }}
-                  >
-                    <View />
-                    <View>
+                  ) : (
+                    <View style={styles.likeBox}>
                       <Text>Liked your photo</Text>
                     </View>
-                  </View>
-                )}
-
-                <Text style={{ fontSize: 17, fontWeight: "500" }}>
-                  {like?.userId?.firstName}
-                </Text>
-              </View>
-
-              <View style={{ width: "100%" }}>
-                <Image
-                  key={index}
-                  source={{ uri: like.userId?.imageUrls[0] }}
-                  style={{ height: 220, width: 180, borderRadius: 4 }}
-                />
-              </View>
+                  )}
+                  <Text style={styles.nextName}>{like.userId?.firstName}</Text>
+                  <Image
+                    source={{ uri: like.userId?.imageUrls[0] }}
+                    style={styles.nextImage}
+                  />
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -352,4 +194,118 @@ const LikesScreen = () => {
 
 export default LikesScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FAF9F6",
+  },
+  scrollView: {
+    marginTop: 55,
+    padding: 15,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 23,
+    fontWeight: "bold",
+    marginTop: 15,
+  },
+  boostButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#008B8B",
+    padding: 10,
+    borderRadius: 30,
+  },
+  boostText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  filters: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+    gap: 10,
+  },
+  filterOption: {
+    borderWidth: 0.7,
+    borderColor: "#808080",
+    padding: 10,
+    borderRadius: 20,
+  },
+  activeOption: {
+    backgroundColor: "black",
+    borderColor: "transparent",
+  },
+  filterText: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#808080",
+  },
+  activeText: {
+    color: "white",
+  },
+  mainLike: {
+    padding: 20,
+    borderColor: "#E0E0E0",
+    borderWidth: 1,
+    borderRadius: 7,
+    marginBottom: 20,
+  },
+  likeInfo: {
+    backgroundColor: "#f0f0f0",
+    padding: 12,
+    borderRadius: 5,
+    marginBottom: 8,
+  },
+  mainName: {
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  mainImage: {
+    width: "100%",
+    height: 350,
+    resizeMode: "cover",
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  upNextTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+  },
+  upNextContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 20,
+  },
+  nextLike: {
+    backgroundColor: "white",
+    marginVertical: 10,
+  },
+  commentBox: {
+    backgroundColor: "#F5F3C6",
+    padding: 12,
+    borderRadius: 5,
+    marginBottom: 8,
+  },
+  likeBox: {
+    backgroundColor: "#f0f0f0",
+    padding: 12,
+    borderRadius: 5,
+    marginBottom: 8,
+  },
+  nextName: {
+    fontSize: 17,
+    fontWeight: "500",
+  },
+  nextImage: {
+    height: 220,
+    width: 180,
+    borderRadius: 4,
+  },
+});

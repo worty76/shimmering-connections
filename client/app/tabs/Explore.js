@@ -114,7 +114,7 @@ const Explore = ({ navigation }) => {
               profileId: user._id,
             })
           }
-          imageUrls={user.imageUrls}
+          imageUrls={user.imageUrls.filter((img) => img !== "")}
           userInfo={{
             firstName: user.firstName,
             age: user.dateOfBirth,

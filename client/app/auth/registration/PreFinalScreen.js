@@ -1,4 +1,11 @@
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+} from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import AntDesign from "react-native-vector-icons/AntDesign";
 import { useNavigation } from "@react-navigation/native";
@@ -16,19 +23,19 @@ const PreFinalScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [userData, setUserData] = useState();
+  const [loading, setLoading] = useState(false);
+  const { token, setToken } = useContext(AuthContext);
+
   useEffect(() => {
     getAllUserData();
   }, []);
-
-  const { token, isLoading, setToken } = useContext(AuthContext);
-
-  console.log(token);
 
   useEffect(() => {
     if (token) {
       navigation.navigate("MainStack", { screen: "Main" });
     }
   }, [token, navigation]);
+
   const getAllUserData = async () => {
     try {
       const screens = [
@@ -55,14 +62,12 @@ const PreFinalScreen = () => {
         }
       }
 
-      console.log(userData);
-
       setUserData(userData);
     } catch (error) {
       console.error("Error retrieving user data:", error);
-      return null;
     }
   };
+
   const clearAllScreenData = async () => {
     try {
       const screens = [
@@ -81,38 +86,23 @@ const PreFinalScreen = () => {
         const key = `registration_progress_${screenName}`;
         await AsyncStorage.removeItem(key);
       }
-      console.log("All screen data cleared successfully");
     } catch (error) {
       console.error("Error clearing screen data:", error);
     }
   };
 
   const registerUser = async () => {
+    setLoading(true);
     try {
       const formData = new FormData();
       for (const key in userData) {
         if (key === "imageUrls" && Array.isArray(userData[key])) {
-          userData[key].forEach((item, index) => {
-            if (typeof item === "string") {
-              // Append the image URI directly as a string
-              formData.append("imageUrls", item);
-            } else {
-              console.log(
-                `Unexpected item type for image at index ${index}:`,
-                item
-              );
-            }
-          });
+          userData[key].forEach((item) => formData.append("imageUrls", item));
         } else if (key === "prompts") {
           formData.append(key, JSON.stringify(userData[key]));
         } else {
           formData.append(key, userData[key]);
         }
-      }
-
-      // Debug: Log the `FormData` entries
-      for (let pair of formData.entries()) {
-        console.log(`${pair[0]}:`, pair[1]);
       }
 
       const response = await axios.post(
@@ -126,75 +116,40 @@ const PreFinalScreen = () => {
       );
 
       if (response.status === 201) {
-        console.log(response);
         const token = response.data.token;
         await AsyncStorage.setItem("token", token);
         setToken(token);
-        navigation.navigate("tabs/index", { screen: "tabs/index" });
         clearAllScreenData();
+        navigation.navigate("tabs/index", { screen: "tabs/index" });
       }
     } catch (error) {
       console.error("Error registering user:", error);
-      throw error;
+      alert("Failed to register. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={{ marginTop: 80 }}>
-        <Text
-          style={{
-            fontSize: 35,
-            fontWeight: "bold",
-            fontFamily: "GeezaPro-Bold",
-            marginLeft: 20,
-          }}
-        >
-          All set to register
-        </Text>
-        <Text
-          style={{
-            fontSize: 33,
-            fontWeight: "bold",
-            fontFamily: "GeezaPro-Bold",
-            marginLeft: 20,
-            marginRight: 10,
-            marginTop: 10,
-          }}
-        >
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>All set to register</Text>
+        <Text style={styles.subHeaderText}>
           Setting up your profile for you
         </Text>
       </View>
 
-      <View>
-        {/* <LottieView
-          source={require("../assets/love.json")}
-          style={{
-            height: 260,
-            width: 300,
-            alignSelf: "center",
-            marginTop: 40,
-            justifyContent: "center",
-          }}
-          autoPlay
-          loop={true}
-          speed={0.7}
-        /> */}
+      <View style={styles.loaderContainer}>
+        {loading && <ActivityIndicator size="large" color="#900C3F" />}
       </View>
 
       <Pressable
         onPress={registerUser}
-        style={{ backgroundColor: "#900C3F", padding: 15, marginTop: "auto" }}
+        style={[styles.registerButton, loading && { backgroundColor: "#ccc" }]}
+        disabled={loading}
       >
-        <Text
-          style={{
-            textAlign: "center",
-            color: "white",
-            fontWeight: "600",
-            fontSize: 15,
-          }}
-        >
-          Finish registering
+        <Text style={styles.registerButtonText}>
+          {loading ? "Registering..." : "Finish registering"}
         </Text>
       </Pressable>
     </SafeAreaView>
@@ -203,4 +158,41 @@ const PreFinalScreen = () => {
 
 export default PreFinalScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    justifyContent: "space-between",
+  },
+  headerContainer: {
+    marginTop: 80,
+    paddingHorizontal: 20,
+  },
+  headerText: {
+    fontSize: 35,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  subHeaderText: {
+    fontSize: 20,
+    color: "#555",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  registerButton: {
+    backgroundColor: "#900C3F",
+    padding: 15,
+    marginHorizontal: 20,
+    borderRadius: 5,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  registerButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+});

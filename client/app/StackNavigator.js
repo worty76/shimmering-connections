@@ -20,7 +20,6 @@ import NameScreen from "./auth/registration/NameScreen";
 import EmailScreen from "./auth/registration/EmailScreen";
 import PasswordScreen from "./auth/registration/PasswordScreen";
 import BirthScreen from "./auth/registration/BirthScreen";
-import LocationScreen from "./auth/registration/LocationScreen";
 import GenderScreen from "./auth/registration/GenderScreen";
 import TypeScreen from "./auth/registration/TypeScreen";
 import DatingTypeScreen from "./auth/registration/DatingTypeScreen";
@@ -33,6 +32,7 @@ import PreFinalScreen from "./auth/registration/PreFinalScreen";
 import ProfileDetailsScreen from "./tabs/profile/ProfileDetailsScreen";
 import EditInfoScreen from "./tabs/profile/EditInfoScreen";
 import HandleLikeScreen from "./tabs/profile/HandleLikeScreen";
+import EditPhotosScreen from "./tabs/profile/EditPhotoScreen";
 import ChatRoom from "./tabs/chat/ChatRoom";
 
 const StackNavigator = () => {
@@ -84,11 +84,6 @@ const StackNavigator = () => {
       <Stack.Screen
         name="auth/registration/BirthScreen"
         component={BirthScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="auth/registration/LocationScreen"
-        component={LocationScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -165,7 +160,11 @@ const StackNavigator = () => {
           component={HandleLikeScreen}
           options={{ headerShown: false }}
         />
-
+        <Stack.Screen
+          name="EditPhotosScreen"
+          component={EditPhotosScreen}
+          options={{ headerShown: true, title: "Edit Photos" }}
+        />
         <Stack.Screen name="ChatRoom" component={ChatRoom} />
       </Stack.Navigator>
     );
