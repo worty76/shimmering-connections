@@ -20,6 +20,7 @@ import {
 const GenderScreen = () => {
   const [gender, setGender] = useState("");
   const navigation = useNavigation();
+
   useEffect(() => {
     getRegistrationProgress("Gender").then((progressData) => {
       if (progressData) {
@@ -30,129 +31,75 @@ const GenderScreen = () => {
 
   const handleNext = () => {
     if (gender.trim() !== "") {
-      // Save the current progress data including the name
       saveRegistrationProgress("Gender", { gender });
+      navigation.navigate("auth/registration/TypeScreen");
+    } else {
+      alert("Please select your gender before proceeding.");
     }
-    // Navigate to the next screen
-    navigation.navigate("auth/registration/TypeScreen");
   };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={{ marginTop: 90, marginHorizontal: 20 }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              borderColor: "black",
-              borderWidth: 2,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+    <SafeAreaView style={styles.container}>
+      <View style={styles.contentContainer}>
+        <View style={styles.headerContainer}>
+          <View style={styles.iconContainer}>
             <MaterialCommunityIcons
-              name="cake-variant-outline"
+              name="gender-male-female"
               size={26}
               color="black"
             />
           </View>
           <Image
-            style={{ width: 100, height: 40 }}
+            style={styles.logo}
             source={{
               uri: "https://cdn-icons-png.flaticon.com/128/10613/10613685.png",
             }}
           />
         </View>
-        <Text
-          style={{
-            fontSize: 25,
-            fontWeight: "bold",
-            fontFamily: "GeezaPro-Bold",
-            marginTop: 15,
-          }}
-        >
-          Which gender descibes you the best?
-        </Text>
 
-        <Text style={{ marginTop: 30, fontSize: 15, color: "gray" }}>
+        <Text style={styles.titleText}>
+          Which gender describes you the best?
+        </Text>
+        <Text style={styles.descriptionText}>
           Hinge users are matched based on these three gender groups. You can
-          add more about gender after
+          add more about gender later.
         </Text>
 
-        <View style={{ marginTop: 30 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ fontWeight: "500", fontSize: 15 }}>Men</Text>
-            <Pressable onPress={() => setGender("Men")}>
-              <FontAwesome
-                name="circle"
-                size={26}
-                color={gender == "Men" ? "#581845" : "#F0F0F0"}
-              />
-            </Pressable>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginVertical: 12,
-            }}
-          >
-            <Text style={{ fontWeight: "500", fontSize: 15 }}>Women</Text>
-            <Pressable onPress={() => setGender("Women")}>
-              <FontAwesome
-                name="circle"
-                size={26}
-                color={gender == "Women" ? "#581845" : "#F0F0F0"}
-              />
-            </Pressable>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ fontWeight: "500", fontSize: 15 }}>Non-binary</Text>
-            <Pressable onPress={() => setGender("Non-binary")}>
-              <FontAwesome
-                name="circle"
-                size={26}
-                color={gender == "Non-binary" ? "#581845" : "#F0F0F0"}
-              />
-            </Pressable>
-          </View>
+        {/* Gender Options */}
+        <View style={styles.optionsContainer}>
+          <GenderOption
+            label="Men"
+            selected={gender === "Men"}
+            onPress={() => setGender("Men")}
+          />
+          <GenderOption
+            label="Women"
+            selected={gender === "Women"}
+            onPress={() => setGender("Women")}
+          />
+          <GenderOption
+            label="Non-binary"
+            selected={gender === "Non-binary"}
+            onPress={() => setGender("Non-binary")}
+          />
         </View>
 
-        <View
-          style={{
-            marginTop: 30,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
+        {/* Visibility Checkbox */}
+        <View style={styles.visibilityContainer}>
           <AntDesign name="checksquare" size={26} color="#581845" />
-          <Text style={{ fontSize: 15 }}>Visible on profile</Text>
+          <Text style={styles.visibilityText}>Visible on profile</Text>
         </View>
+
+        {/* Next Button */}
         <TouchableOpacity
           onPress={handleNext}
           activeOpacity={0.8}
-          style={{ marginTop: 30, marginLeft: "auto" }}
+          style={styles.nextButton}
         >
           <MaterialCommunityIcons
             name="arrow-right-circle"
             size={45}
             color="#581845"
-            style={{ alignSelf: "center", marginTop: 20 }}
           />
         </TouchableOpacity>
       </View>
@@ -160,6 +107,83 @@ const GenderScreen = () => {
   );
 };
 
+const GenderOption = ({ label, selected, onPress }) => (
+  <Pressable onPress={onPress} style={styles.optionContainer}>
+    <Text style={styles.optionText}>{label}</Text>
+    <FontAwesome
+      name="circle"
+      size={26}
+      color={selected ? "#581845" : "#F0F0F0"}
+    />
+  </Pressable>
+);
+
 export default GenderScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  contentContainer: {
+    marginTop: 90,
+    marginHorizontal: 20,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderColor: "black",
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logo: {
+    width: 100,
+    height: 40,
+    marginLeft: 10,
+  },
+  titleText: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginTop: 15,
+  },
+  descriptionText: {
+    marginTop: 10,
+    fontSize: 15,
+    color: "gray",
+    lineHeight: 22,
+  },
+  optionsContainer: {
+    marginTop: 30,
+  },
+  optionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  optionText: {
+    fontWeight: "500",
+    fontSize: 16,
+  },
+  visibilityContainer: {
+    marginTop: 30,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  visibilityText: {
+    fontSize: 15,
+    marginLeft: 8,
+  },
+  nextButton: {
+    marginTop: 30,
+    alignSelf: "flex-end",
+  },
+});

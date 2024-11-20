@@ -5,20 +5,23 @@ import {
   SafeAreaView,
   Pressable,
   TextInput,
-  Button,
   ScrollView,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import Entypo from "react-native-vector-icons/Entypo";
-import { SlideAnimation } from "react-native-modals";
+import { SlideAnimation, ModalContent, BottomModal } from "react-native-modals";
 import { useNavigation } from "@react-navigation/native";
-import { ModalTitle } from "react-native-modals";
-import { ModalContent, BottomModal } from "react-native-modals";
 
 const ShowPromptScreen = () => {
   const navigation = useNavigation();
   const [prompts, setPrompts] = useState([]);
-  const promptss = [
+  const [option, setOption] = useState("About me");
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  const promptCategories = [
     {
       id: "0",
       name: "About me",
@@ -46,10 +49,6 @@ const ShowPromptScreen = () => {
       ],
     },
   ];
-  const [option, setOption] = useState("About me");
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [isModalVisible, setModalVisible] = useState(false);
 
   const openModal = (item) => {
     setModalVisible(true);
@@ -57,10 +56,8 @@ const ShowPromptScreen = () => {
   };
 
   const addPrompt = () => {
-    if (answer === "") {
-      setQuestion("");
-      setAnswer("");
-      setModalVisible(false);
+    if (!answer.trim()) {
+      Alert.alert("Error", "Please provide an answer.");
       return;
     }
 
@@ -71,7 +68,7 @@ const ShowPromptScreen = () => {
       setAnswer("");
       setModalVisible(false);
     } else {
-      alert("You can only select up to 3 prompts.");
+      Alert.alert("Limit Reached", "You can only select up to 3 prompts.");
     }
   };
 
@@ -82,182 +79,104 @@ const ShowPromptScreen = () => {
 
   const proceedToNextScreen = () => {
     if (prompts.length > 0) {
-      navigation.navigate("auth/registration/PromptScreen", {
-        prompts: prompts,
-      });
+      navigation.navigate("auth/registration/PromptScreen", { prompts });
     } else {
-      alert("Please select at least one prompt to proceed.");
+      Alert.alert("Error", "Please select at least one prompt to proceed.");
     }
   };
 
-  console.log("Selected prompts:", prompts);
-
   return (
     <>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-        <View
-          style={{
-            padding: 10,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text style={{ fontSize: 15, fontWeight: "500", color: "#581845" }}>
-            View all
-          </Text>
-          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#581845" }}>
-            Prompts
-          </Text>
+      <SafeAreaView style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.viewAllText}>View all</Text>
+          <Text style={styles.titleText}>Prompts</Text>
           <Entypo name="cross" size={22} color="black" />
         </View>
 
-        <View
-          style={{
-            marginHorizontal: 10,
-            marginTop: 20,
-            flexDirection: "row",
-            gap: 10,
-          }}
-        >
-          {promptss.map((item, index) => (
-            <View key={item.id}>
-              <Pressable
-                style={{
-                  padding: 10,
-                  borderRadius: 20,
-                  backgroundColor: option === item.name ? "#581845" : "white",
-                }}
-                onPress={() => setOption(item.name)}
+        {/* Categories */}
+        <View style={styles.categoryContainer}>
+          {promptCategories.map((item) => (
+            <Pressable
+              key={item.id}
+              style={[
+                styles.categoryButton,
+                option === item.name && styles.activeCategoryButton,
+              ]}
+              onPress={() => setOption(item.name)}
+            >
+              <Text
+                style={[
+                  styles.categoryText,
+                  option === item.name && styles.activeCategoryText,
+                ]}
               >
-                <Text
-                  style={{
-                    textAlign: "center",
-                    color: option === item.name ? "white" : "black",
-                  }}
-                >
-                  {item.name}
-                </Text>
+                {item.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Prompts */}
+        <ScrollView style={styles.promptList}>
+          {promptCategories.map((category) =>
+            category.name === option
+              ? category.questions.map((questionItem) => (
+                  <Pressable
+                    key={questionItem.id}
+                    onPress={() => openModal(questionItem)}
+                    style={styles.promptItem}
+                  >
+                    <Text style={styles.promptText}>
+                      {questionItem.question}
+                    </Text>
+                  </Pressable>
+                ))
+              : null
+          )}
+        </ScrollView>
+
+        {/* Selected Prompts */}
+        <View style={styles.selectedPromptsContainer}>
+          <Text style={styles.selectedPromptsTitle}>Selected Prompts:</Text>
+          {prompts.map((item, index) => (
+            <View key={index} style={styles.selectedPrompt}>
+              <Text style={styles.selectedPromptText}>
+                {item.question}: {item.answer}
+              </Text>
+              <Pressable onPress={() => removePrompt(index)}>
+                <Entypo name="cross" size={20} color="red" />
               </Pressable>
             </View>
           ))}
         </View>
 
-        <ScrollView style={{ marginTop: 20, marginHorizontal: 12 }}>
-          {promptss.map((item) => (
-            <View key={item.id}>
-              {option === item.name && (
-                <View>
-                  {item.questions.map((questionItem) => (
-                    <Pressable
-                      onPress={() => openModal(questionItem)}
-                      style={{ marginVertical: 12 }}
-                      key={questionItem.id}
-                    >
-                      <Text style={{ fontSize: 15, fontWeight: "500" }}>
-                        {questionItem.question}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
-          ))}
-
-          {/* Display selected prompts */}
-          <View style={{ marginTop: 30 }}>
-            <Text
-              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
-            >
-              Selected Prompts:
-            </Text>
-            {prompts.map((item, index) => (
-              <View
-                key={index}
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  marginBottom: 10,
-                  padding: 10,
-                  borderWidth: 1,
-                  borderRadius: 5,
-                  borderColor: "#ddd",
-                }}
-              >
-                <Text style={{ fontSize: 15, fontWeight: "500" }}>
-                  {item.question}: {item.answer}
-                </Text>
-                <Pressable onPress={() => removePrompt(index)}>
-                  <Entypo name="cross" size={20} color="red" />
-                </Pressable>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-
-        <Pressable
-          onPress={proceedToNextScreen}
-          style={{
-            backgroundColor: "#581845",
-            padding: 10,
-            borderRadius: 10,
-            marginTop: 20,
-            marginHorizontal: 12,
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ color: "white", fontSize: 16 }}>Proceed</Text>
+        {/* Proceed Button */}
+        <Pressable style={styles.proceedButton} onPress={proceedToNextScreen}>
+          <Text style={styles.proceedButtonText}>Proceed</Text>
         </Pressable>
       </SafeAreaView>
 
+      {/* Modal */}
       <BottomModal
-        onBackdropPress={() => setModalVisible(false)}
-        onHardwareBackPress={() => setModalVisible(false)}
-        swipeDirection={["up", "down"]}
-        swipeThreshold={200}
-        modalTitle={<ModalTitle title="Choose Option" />}
-        modalAnimation={
-          new SlideAnimation({
-            slideFrom: "bottom",
-          })
-        }
         visible={isModalVisible}
         onTouchOutside={() => setModalVisible(false)}
+        swipeDirection={["up", "down"]}
+        modalAnimation={new SlideAnimation({ slideFrom: "bottom" })}
       >
-        <ModalContent style={{ width: "100%", height: 280 }}>
-          <View style={{ marginVertical: 10 }}>
-            <Text
-              style={{ textAlign: "center", fontWeight: "600", fontSize: 15 }}
-            >
-              Answer your question
-            </Text>
-            <Text style={{ marginTop: 15, fontSize: 20, fontWeight: "600" }}>
-              {question}
-            </Text>
-            <View
-              style={{
-                borderColor: "#202020",
-                borderWidth: 1,
-                padding: 10,
-                borderRadius: 10,
-                height: 100,
-                marginVertical: 12,
-                borderStyle: "dashed",
-              }}
-            >
-              <TextInput
-                value={answer}
-                onChangeText={(text) => setAnswer(text)}
-                style={{
-                  color: "gray",
-                  width: 300,
-                  fontSize: 18,
-                }}
-                placeholder="Enter Your Answer"
-              />
-            </View>
-            <Button onPress={addPrompt} title="Add" />
-          </View>
+        <ModalContent style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Answer your question</Text>
+          <Text style={styles.modalQuestion}>{question}</Text>
+          <TextInput
+            value={answer}
+            onChangeText={setAnswer}
+            style={styles.textInput}
+            placeholder="Enter Your Answer"
+          />
+          <Pressable style={styles.addButton} onPress={addPrompt}>
+            <Text style={styles.addButtonText}>Add</Text>
+          </Pressable>
         </ModalContent>
       </BottomModal>
     </>
@@ -266,4 +185,129 @@ const ShowPromptScreen = () => {
 
 export default ShowPromptScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  header: {
+    padding: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  viewAllText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#581845",
+  },
+  titleText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#581845",
+  },
+  categoryContainer: {
+    flexDirection: "row",
+    margin: 10,
+  },
+  categoryButton: {
+    padding: 10,
+    borderRadius: 20,
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    marginRight: 10,
+  },
+  activeCategoryButton: {
+    backgroundColor: "#581845",
+  },
+  categoryText: {
+    textAlign: "center",
+    color: "black",
+  },
+  activeCategoryText: {
+    color: "white",
+  },
+  promptList: {
+    marginTop: 20,
+    marginHorizontal: 12,
+  },
+  promptItem: {
+    marginVertical: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  promptText: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  selectedPromptsContainer: {
+    marginTop: 30,
+    paddingHorizontal: 12,
+  },
+  selectedPromptsTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  selectedPrompt: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: "#ddd",
+    marginBottom: 10,
+  },
+  selectedPromptText: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  proceedButton: {
+    backgroundColor: "#581845",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 12,
+  },
+  proceedButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalContent: {
+    width: "100%",
+    height: 280,
+    padding: 20,
+  },
+  modalTitle: {
+    textAlign: "center",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  modalQuestion: {
+    marginTop: 15,
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  textInput: {
+    borderColor: "#ddd",
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginVertical: 15,
+  },
+  addButton: {
+    backgroundColor: "#581845",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  addButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
