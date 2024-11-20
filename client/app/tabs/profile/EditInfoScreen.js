@@ -12,11 +12,12 @@ import {
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import api from "../../../constants/api";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import RNPickerSelect from "react-native-picker-select";
 
 const EditInfoScreen = () => {
   const route = useRoute();
+  const navigation = useNavigation();
   const { userId } = route.params;
 
   const [user, setUser] = useState({
@@ -135,6 +136,13 @@ const EditInfoScreen = () => {
   return (
     <>
       <ScrollView style={styles.container}>
+        <Pressable
+          style={styles.goBackButton}
+          onPress={() => navigation.goBack()}
+        >
+          <AntDesign name="arrowleft" size={24} color="white" />
+          <Text style={styles.goBackText}>Go Back</Text>
+        </Pressable>
         <Text style={styles.header}>Edit Your Info</Text>
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionHeader}>Basic Information</Text>
@@ -441,6 +449,11 @@ const styles = StyleSheet.create({
   selectedPromptText: {
     color: "white",
     fontWeight: "bold",
+  },
+  goBackButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
   },
 });
 

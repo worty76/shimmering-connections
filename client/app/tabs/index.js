@@ -1,7 +1,4 @@
-import { Stack } from "expo-router";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { ActivityIndicator, View } from "react-native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Explore from "./Explore";
 import BioScreen from "./bio/BioScreen";
 import ProfileScreen from "./profile/LikesScreen";
@@ -10,97 +7,80 @@ import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import {
   MaterialCommunityIcons,
-  Entypo,
-  MaterialIcons,
+  FontAwesome,
+  Feather,
+  Ionicons,
 } from "@expo/vector-icons";
 
 export default function BottomTabs() {
-  const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
   const { isLoading, token } = useContext(AuthContext);
+
   return (
     <Tab.Navigator
-      screenOptions={() => ({
+      screenOptions={{
         tabBarShowLabel: false,
-      })}
+        tabBarStyle: { backgroundColor: "#101010", borderTopWidth: 0 },
+        headerShown: false,
+      }}
     >
+      {/* Explore Tab - Showing Users to Like */}
       <Tab.Screen
-        name="explore"
+        name="Explore"
         component={Explore}
         options={{
-          tabBarStyle: { backgroundColor: "#101010" },
-          tabBarLabelStyle: { color: "#008E97" },
-          headerShown: false,
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <MaterialCommunityIcons name="alpha" size={35} color="white" />
-            ) : (
-              <MaterialCommunityIcons name="alpha" size={35} color="#989898" />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name="heart-circle-outline"
+              size={focused ? 35 : 30}
+              color={focused ? "white" : "#989898"}
+            />
+          ),
         }}
       />
 
+      {/* Bio Tab - User Profile */}
       <Tab.Screen
-        name="bio"
+        name="Bio"
         component={BioScreen}
         options={{
-          tabBarStyle: { backgroundColor: "#101010" },
-          tabBarLabelStyle: { color: "#008E97" },
-          headerShown: false,
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <Entypo name="heart" size={30} color="white" />
-            ) : (
-              <Entypo name="heart" size={30} color="#989898" />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <FontAwesome
+              name="user"
+              size={focused ? 35 : 30}
+              color={focused ? "white" : "#989898"}
+            />
+          ),
         }}
       />
 
+      {/* Profile Tab - People Who Liked Me */}
       <Tab.Screen
-        name="profile"
+        name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarStyle: { backgroundColor: "#101010" },
-          tabBarLabelStyle: { color: "#008E97" },
-          headerShown: false,
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <MaterialIcons
-                name="chat-bubble-outline"
-                size={30}
-                color="white"
-              />
-            ) : (
-              <MaterialIcons
-                name="chat-bubble-outline"
-                size={30}
-                color="#989898"
-              />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <MaterialCommunityIcons
+              name="heart-multiple-outline"
+              size={focused ? 35 : 30}
+              color={focused ? "white" : "#989898"}
+            />
+          ),
         }}
       />
 
+      {/* Chat Tab - Messaging */}
       <Tab.Screen
         name="Chat"
         component={ChatScreen}
         options={{
-          tabBarStyle: { backgroundColor: "#101010" },
-          tabBarLabelStyle: { color: "#008E97" },
-          headerShown: false,
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <MaterialIcons
-                name="chat-bubble-outline"
-                size={30}
-                color="white"
-              />
-            ) : (
-              <MaterialIcons
-                name="chat-bubble-outline"
-                size={30}
-                color="#989898"
-              />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <Feather
+              name="message-circle"
+              size={focused ? 35 : 30}
+              color={focused ? "white" : "#989898"}
+            />
+          ),
         }}
       />
     </Tab.Navigator>
