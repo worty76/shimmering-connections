@@ -9,6 +9,12 @@ const userSchema = new Schema({
   lastName: {
     type: String,
   },
+  bio: {
+    type: String,
+  },
+  age: {
+    type: Number,
+  },
   email: {
     type: String,
     required: true,
@@ -30,12 +36,11 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
-  location: {
+  province: {
     type: String,
   },
-  hometown: {
+  district: {
     type: String,
-    required: true,
   },
   datingPreferences: [
     {
@@ -48,7 +53,7 @@ const userSchema = new Schema({
   },
   imageUrls: [
     {
-      type: String, // Store URLs of profile pictures
+      type: String,
     },
   ],
   prompts: [
@@ -127,7 +132,6 @@ const userSchema = new Schema({
   },
 });
 
-// Create the User model
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;

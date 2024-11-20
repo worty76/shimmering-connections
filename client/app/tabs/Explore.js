@@ -82,7 +82,7 @@ const Explore = ({ navigation }) => {
     try {
       const response = await axios.post(`${constants.API_URL}/api/user/like`, {
         userId: userId,
-        likedUserId: user._id,
+        likedUserId: user.userId,
       });
       console.log(response);
       nextUser();
@@ -111,14 +111,15 @@ const Explore = ({ navigation }) => {
         <UserCard
           onPress={() =>
             navigation.navigate("tabs/profile/ProfileDetailsScreen", {
-              profileId: user._id,
+              profileId: user.userId,
             })
           }
           imageUrls={user.imageUrls.filter((img) => img !== "")}
           userInfo={{
             firstName: user.firstName,
             age: user.dateOfBirth,
-            location: user.hometown,
+            province: user.province,
+            district: user.district,
           }}
         />
       )}
