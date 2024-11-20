@@ -1,5 +1,10 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const path = require("path");
+const turf = require("@turf/turf");
+const axios = require("axios");
+
 require("dotenv").config();
 
 const getUserData = async (req, res) => {
@@ -12,56 +17,119 @@ const getUserData = async (req, res) => {
     res.status(500).send({ message: "Internal server error", error });
   }
 };
+const geoDataPath = path.resolve(__dirname, "../utils/diaphanhuyen.geojson");
+geoData = JSON.parse(fs.readFileSync(geoDataPath, "utf-8"));
+
+const getClosenessScore = (
+  currentProvince,
+  currentDistrict,
+  userProvince,
+  userDistrict
+) => {
+  if (currentProvince === userProvince) {
+    if (currentDistrict === userDistrict) {
+      // Same district
+      return 0;
+    }
+    // Same Province
+    return 1;
+  }
+  // Not same province
+  return 2;
+};
 
 const getProfiles = async (req, res) => {
   try {
     const { userId } = req.query;
 
-    const user = await User.findById(userId);
-    if (!user) {
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    let filter = {};
+    const allUsers = await User.find({ _id: { $ne: userId } });
 
-    if (user.gender === "Men") {
-      filter.gender = "Women";
-    } else if (user.gender === "Women") {
-      filter.gender = "Men";
-    }
+    const usersWithScores = allUsers.map((user) => {
+      const score = getClosenessScore(
+        currentUser.province,
+        currentUser.district,
+        user.province,
+        user.district
+      );
 
-    let query = {
-      _id: { $ne: userId },
-    };
+      return {
+        userId: user._id,
+        firstName: user.firstName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        province: user.province,
+        district: user.district,
+        imageUrls: user.imageUrls,
+        prompts: user.prompts,
+        dateOfBirth: user.dateOfBirth,
+        gender: user.gender,
+        score,
+      };
+    });
 
-    // if (user.datingPreferences && user.datingPreferences.length > 0) {
-    //   filter.datingPreferences = user.datingPreferences;
-    // }
+    const matches = usersWithScores.sort((a, b) => a.score - b.score);
 
-    if (user.type) {
-      filter.type = user.type;
-    }
-
-    const currentUser = await User.findById(userId)
-      .populate("matches", "_id")
-      .populate("likedProfiles", "_id");
-
-    const friendIds = currentUser.matches.map((friend) => friend._id);
-
-    const crushIds = currentUser.likedProfiles.map((crush) => crush._id);
-
-    console.log("filter", filter);
-
-    const matches = await User.find(filter)
-      .where("_id")
-      .nin([userId, ...friendIds, ...crushIds]);
-
-    return res.status(200).json({ matches });
+    res.status(200).json({ matches });
   } catch (error) {
-    console.error("Error fetching matches:", error);
+    console.error("Error finding closest users:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// const getProfiles = async (req, res) => {
+//   try {
+//     const { userId } = req.query;
+
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     let filter = {};
+
+//     if (user.gender === "Men") {
+//       filter.gender = "Women";
+//     } else if (user.gender === "Women") {
+//       filter.gender = "Men";
+//     }
+
+//     let query = {
+//       _id: { $ne: userId },
+//     };
+
+//     // if (user.datingPreferences && user.datingPreferences.length > 0) {
+//     //   filter.datingPreferences = user.datingPreferences;
+//     // }
+
+//     if (user.type) {
+//       filter.type = user.type;
+//     }
+
+//     const currentUser = await User.findById(userId)
+//       .populate("matches", "_id")
+//       .populate("likedProfiles", "_id");
+
+//     const friendIds = currentUser.matches.map((friend) => friend._id);
+
+//     const crushIds = currentUser.likedProfiles.map((crush) => crush._id);
+
+//     console.log("filter", filter);
+
+//     const matches = await User.find(filter)
+//       .where("_id")
+//       .nin([userId, ...friendIds, ...crushIds]);
+
+//     return res.status(200).json({ matches });
+//   } catch (error) {
+//     console.error("Error fetching matches:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 const likeProfile = async (req, res) => {
   try {
@@ -187,6 +255,64 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const generateBio = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const prompts = user.prompts
+      .map((prompt) => `${prompt.question}: ${prompt.answer}`)
+      .join("\n");
+
+    const promptText = `
+      Generate a creative, engaging, and personalized bio for a user based on the following interests:
+      ${prompts}
+      Make the bio friendly and fun, but no longer than 100 characters.
+    `;
+
+    // Prepare API payload
+    const payload = {
+      contents: [
+        {
+          parts: [
+            {
+              text: promptText,
+            },
+          ],
+        },
+      ],
+    };
+
+    // Make the API call
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log(response.data.candidates[0].content.parts[0].text);
+
+    // Extract the generated bio from the response
+    const bio = response.data.candidates[0].content.parts[0].text;
+
+    res.status(200).json({ bio: bio });
+  } catch (error) {
+    console.error(
+      "Error generating bio:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({ message: "Error generating bio", error });
+  }
+};
+
 const userController = {
   getUserData,
   getProfiles,
@@ -195,6 +321,7 @@ const userController = {
   createMatch,
   getMatches,
   updateProfile,
+  generateBio,
 };
 
 module.exports = userController;
