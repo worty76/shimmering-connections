@@ -5,26 +5,29 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ScrollView,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import AntDesign from "react-native-vector-icons/AntDesign";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   getRegistrationProgress,
   saveRegistrationProgress,
 } from "../../../helpers/registrationUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRoute } from "@react-navigation/native";
 import axios from "axios";
-import { StackActions } from "@react-navigation/native";
 
 const PromptScreen = () => {
   const route = useRoute();
-
-  console.log("he", route?.params?.PromptsScreen);
   const navigation = useNavigation();
   const [userData, setUserData] = useState();
+
+  useEffect(() => {
+    getAllUserData();
+  }, []);
+
   const getAllUserData = async () => {
     try {
       const screens = [
@@ -52,25 +55,6 @@ const PromptScreen = () => {
       setUserData(userData);
     } catch (error) {
       console.error("Error retrieving user data:", error);
-      return null;
-    }
-  };
-
-  const registerUser = async (userData) => {
-    try {
-      const response = await axios
-        .post("http://localhost:3000/register", userData)
-        .then((response) => {
-          console.log(response);
-          const token = response.data.token;
-          AsyncStorage.setItem("token", token);
-        });
-      clearAllScreenData();
-
-      navigation.replace("Main");
-    } catch (error) {
-      console.error("Error registering user:", error);
-      throw error;
     }
   };
 
@@ -79,216 +63,165 @@ const PromptScreen = () => {
       saveRegistrationProgress("Prompts", { prompts: route.params.prompts });
       navigation.navigate("auth/registration/PreFinalScreen");
     } else {
-      navigation.navigate("auth/registration/PreFinalScreen");
+      Alert.alert("Incomplete", "Please select at least one prompt.");
     }
   };
-  return (
-    <View>
-      <View style={{ marginTop: 90, marginHorizontal: 20 }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              borderColor: "black",
-              borderWidth: 2,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <AntDesign name="eye" size={22} color="black" />
-          </View>
-          <Image
-            style={{ width: 100, height: 40 }}
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/10613/10613685.png",
-            }}
-          />
-        </View>
-        <Text
-          style={{
-            fontSize: 25,
-            fontWeight: "bold",
-            fontFamily: "GeezaPro-Bold",
-            marginTop: 15,
-          }}
-        >
-          Write your profile answers
-        </Text>
 
-        <View style={{ marginTop: 20, flexDirection: "column", gap: 20 }}>
-          {route?.params?.prompts ? (
-            route?.params?.prompts?.map((item, index) => (
+  return (
+    <ScrollView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.iconContainer}>
+          <AntDesign name="eye" size={22} color="black" />
+        </View>
+        <Image
+          style={styles.logo}
+          source={{
+            uri: "https://cdn-icons-png.flaticon.com/128/10613/10613685.png",
+          }}
+        />
+      </View>
+
+      {/* Title */}
+      <Text style={styles.titleText}>Write your profile answers</Text>
+
+      {/* Prompts */}
+      <View style={styles.promptContainer}>
+        {route?.params?.prompts
+          ? route.params.prompts.map((item, index) => (
               <Pressable
+                key={index}
                 onPress={() =>
                   navigation.navigate("auth/registration/ShowPromptScreen")
                 }
-                style={{
-                  borderColor: "#707070",
-                  borderWidth: 2,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderStyle: "dashed",
-                  borderRadius: 10,
-                  height: 70,
-                }}
+                style={styles.promptBox}
               >
-                <Text
-                  style={{
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                  }}
-                >
-                  {item?.question}
-                </Text>
-                <Text
-                  style={{
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                    marginTop: 3,
-                  }}
-                >
-                  {item?.answer}
-                </Text>
+                <Text style={styles.promptQuestion}>{item.question}</Text>
+                <Text style={styles.promptAnswer}>{item.answer}</Text>
               </Pressable>
             ))
-          ) : (
-            <View>
+          : Array.from({ length: 3 }).map((_, index) => (
               <Pressable
+                key={index}
                 onPress={() =>
                   navigation.navigate("auth/registration/ShowPromptScreen")
                 }
-                style={{
-                  borderColor: "#707070",
-                  borderWidth: 2,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderStyle: "dashed",
-                  borderRadius: 10,
-                  height: 70,
-                }}
+                style={styles.placeholderBox}
               >
-                <Text
-                  style={{
-                    color: "gray",
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                  }}
-                >
-                  Select a Prompt
-                </Text>
-                <Text
-                  style={{
-                    color: "gray",
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                    marginTop: 3,
-                  }}
-                >
+                <Text style={styles.placeholderText}>Select a Prompt</Text>
+                <Text style={styles.placeholderSubText}>
                   And write your own answer
                 </Text>
               </Pressable>
-
-              <Pressable
-                onPress={() =>
-                  navigation.navigate("auth/registration/ShowPromptScreen")
-                }
-                style={{
-                  borderColor: "#707070",
-                  borderWidth: 2,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderStyle: "dashed",
-                  borderRadius: 10,
-                  height: 70,
-                  marginVertical: 15,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "gray",
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                  }}
-                >
-                  Select a Prompt
-                </Text>
-                <Text
-                  style={{
-                    color: "gray",
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                    marginTop: 3,
-                  }}
-                >
-                  And write your own answer
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() =>
-                  navigation.navigate("auth/registration/ShowPromptScreen")
-                }
-                style={{
-                  borderColor: "#707070",
-                  borderWidth: 2,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderStyle: "dashed",
-                  borderRadius: 10,
-                  height: 70,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "gray",
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                  }}
-                >
-                  Select a Prompt
-                </Text>
-                <Text
-                  style={{
-                    color: "gray",
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                    marginTop: 3,
-                  }}
-                >
-                  And write your own answer
-                </Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
-
-        <TouchableOpacity
-          onPress={handleNext}
-          activeOpacity={0.8}
-          style={{ marginTop: 30, marginLeft: "auto" }}
-        >
-          <MaterialCommunityIcons
-            name="arrow-right-circle"
-            size={45}
-            color="#581845"
-            style={{ alignSelf: "center", marginTop: 20 }}
-          />
-        </TouchableOpacity>
+            ))}
       </View>
-    </View>
+
+      {/* Next Button */}
+      <TouchableOpacity
+        onPress={handleNext}
+        activeOpacity={0.8}
+        style={styles.nextButton}
+      >
+        <MaterialCommunityIcons
+          name="arrow-right-circle"
+          size={45}
+          color="#581845"
+        />
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 export default PromptScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 20,
+  },
+  header: {
+    marginTop: 60,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderColor: "black",
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logo: {
+    width: 100,
+    height: 40,
+    marginLeft: 10,
+  },
+  titleText: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginTop: 20,
+    color: "#333",
+  },
+  promptContainer: {
+    marginTop: 30,
+  },
+  promptBox: {
+    borderColor: "#707070",
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    borderStyle: "dashed",
+    borderRadius: 10,
+    height: 80,
+    marginBottom: 15,
+    padding: 10,
+  },
+  promptQuestion: {
+    fontWeight: "600",
+    fontStyle: "italic",
+    fontSize: 16,
+    textAlign: "center",
+    color: "#333",
+  },
+  promptAnswer: {
+    fontWeight: "600",
+    fontStyle: "italic",
+    fontSize: 14,
+    textAlign: "center",
+    color: "#581845",
+    marginTop: 5,
+  },
+  placeholderBox: {
+    borderColor: "#707070",
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    borderStyle: "dashed",
+    borderRadius: 10,
+    height: 80,
+    marginBottom: 15,
+    padding: 10,
+  },
+  placeholderText: {
+    color: "gray",
+    fontWeight: "600",
+    fontStyle: "italic",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  placeholderSubText: {
+    color: "gray",
+    fontWeight: "600",
+    fontStyle: "italic",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 5,
+  },
+  nextButton: {
+    marginTop: 20,
+    alignSelf: "center",
+  },
+});

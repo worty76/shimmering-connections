@@ -3,9 +3,10 @@ import {
   Text,
   View,
   SafeAreaView,
-  Image,
-  Pressable,
   TouchableOpacity,
+  Pressable,
+  Image,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -18,151 +19,83 @@ import {
 } from "../../../helpers/registrationUtils";
 
 const DatingType = () => {
-  const [datingPreferences, setDatingPreferences] = useState([]);
-  const chooseOption = (option) => {
-    if (datingPreferences.includes(option)) {
-      setDatingPreferences(
-        datingPreferences.filter((selectedOption) => selectedOption !== option)
-      );
-    } else {
-      setDatingPreferences([...datingPreferences, option]);
-    }
-  };
+  const [selectedOption, setSelectedOption] = useState("");
   const navigation = useNavigation();
+
   useEffect(() => {
-    // Fetch the registration progress data for the "Dating" screen
     getRegistrationProgress("Dating").then((progressData) => {
       if (progressData) {
-        setDatingPreferences(progressData.datingPreferences || []);
+        setSelectedOption(progressData.selectedOption || "");
       }
     });
   }, []);
 
   const handleNext = () => {
-    if (datingPreferences.length > 0) {
-      // Save the current progress data including the options
-      saveRegistrationProgress("Dating", { datingPreferences });
+    if (!selectedOption) {
+      Alert.alert("Selection Required", "Please select an option.");
+      return;
     }
-    // Navigate to the next screen
+    saveRegistrationProgress("Dating", { selectedOption });
     navigation.navigate("auth/registration/LookingForScreen");
   };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={{ marginTop: 90, marginHorizontal: 20 }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              borderColor: "black",
-              borderWidth: 2,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+    <SafeAreaView style={styles.container}>
+      <View style={styles.contentContainer}>
+        {/* Header */}
+        <View style={styles.headerContainer}>
+          <View style={styles.iconContainer}>
             <AntDesign name="hearto" size={22} color="black" />
           </View>
           <Image
-            style={{ width: 100, height: 40 }}
+            style={styles.logo}
             source={{
               uri: "https://cdn-icons-png.flaticon.com/128/10613/10613685.png",
             }}
           />
         </View>
-        <Text
-          style={{
-            fontSize: 25,
-            fontWeight: "bold",
-            fontFamily: "GeezaPro-Bold",
-            marginTop: 15,
-          }}
-        >
-          Who do you want to date?
+
+        {/* Title and Description */}
+        <Text style={styles.titleText}>Who do you want to date?</Text>
+        <Text style={styles.descriptionText}>
+          Select the group you're open to meeting.
         </Text>
 
-        <Text style={{ marginTop: 30, fontSize: 15, color: "gray" }}>
-          Select all the people you're open to meeting
-        </Text>
-
-        <View style={{ marginTop: 30, flexDirection: "column", gap: 12 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ fontWeight: "500", fontSize: 15 }}>Men</Text>
-            <Pressable onPress={() => chooseOption("Men")}>
-              <FontAwesome
-                name="circle"
-                size={26}
-                color={
-                  datingPreferences.includes("Men") ? "#581845" : "#F0F0F0"
-                }
-              />
-            </Pressable>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ fontWeight: "500", fontSize: 15 }}>Women</Text>
-            <Pressable onPress={() => chooseOption("Women")}>
-              <FontAwesome
-                name="circle"
-                size={26}
-                color={
-                  datingPreferences.includes("Women") ? "#581845" : "#F0F0F0"
-                }
-              />
-            </Pressable>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ fontWeight: "500", fontSize: 15 }}>Everyone</Text>
-            <Pressable onPress={() => chooseOption("Everyone")}>
-              <FontAwesome
-                name="circle"
-                size={26}
-                color={
-                  datingPreferences.includes("Everyone") ? "#581845" : "#F0F0F0"
-                }
-              />
-            </Pressable>
-          </View>
+        {/* Options */}
+        <View style={styles.optionsContainer}>
+          <Option
+            label="Men"
+            selected={selectedOption === "Men"}
+            onPress={() => setSelectedOption("Men")}
+          />
+          <Option
+            label="Women"
+            selected={selectedOption === "Women"}
+            onPress={() => setSelectedOption("Women")}
+          />
+          <Option
+            label="Everyone"
+            selected={selectedOption === "Everyone"}
+            onPress={() => setSelectedOption("Everyone")}
+          />
         </View>
 
-        <View
-          style={{
-            marginTop: 30,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
+        {/* Visibility */}
+        <View style={styles.visibilityContainer}>
           <AntDesign name="checksquare" size={26} color="#581845" />
-          <Text style={{ fontSize: 15 }}>Visible on profile</Text>
+          <Text style={styles.visibilityText}>Visible on profile</Text>
         </View>
+
+        {/* Next Button */}
         <TouchableOpacity
           onPress={handleNext}
           activeOpacity={0.8}
-          style={{ marginTop: 30, marginLeft: "auto" }}
+          style={styles.nextButton}
         >
           <MaterialCommunityIcons
             name="arrow-right-circle"
             size={45}
             color="#581845"
-            style={{ alignSelf: "center", marginTop: 20 }}
           />
         </TouchableOpacity>
       </View>
@@ -170,6 +103,84 @@ const DatingType = () => {
   );
 };
 
+// Reusable Option Component
+const Option = ({ label, selected, onPress }) => (
+  <Pressable onPress={onPress} style={styles.optionContainer}>
+    <Text style={styles.optionText}>{label}</Text>
+    <FontAwesome
+      name="circle"
+      size={26}
+      color={selected ? "#581845" : "#F0F0F0"}
+    />
+  </Pressable>
+);
+
 export default DatingType;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  contentContainer: {
+    marginTop: 90,
+    marginHorizontal: 20,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderColor: "black",
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logo: {
+    width: 100,
+    height: 40,
+    marginLeft: 10,
+  },
+  titleText: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginTop: 15,
+  },
+  descriptionText: {
+    marginTop: 10,
+    fontSize: 15,
+    color: "gray",
+    lineHeight: 22,
+  },
+  optionsContainer: {
+    marginTop: 30,
+  },
+  optionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  optionText: {
+    fontWeight: "500",
+    fontSize: 16,
+  },
+  visibilityContainer: {
+    marginTop: 30,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  visibilityText: {
+    fontSize: 15,
+    marginLeft: 8,
+  },
+  nextButton: {
+    marginTop: 30,
+    alignSelf: "flex-end",
+  },
+});

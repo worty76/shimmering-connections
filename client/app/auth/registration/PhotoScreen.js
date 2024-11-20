@@ -1,227 +1,213 @@
 import {
-  StyleSheet,
-  Text,
-  View,
-  SafeAreaView,
   Image,
   Pressable,
-  Button,
+  StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
+  ScrollView,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import EvilIcons from "react-native-vector-icons/EvilIcons";
-import { useNavigation } from "@react-navigation/native";
+import AntDesign from "react-native-vector-icons/AntDesign";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   getRegistrationProgress,
   saveRegistrationProgress,
 } from "../../../helpers/registrationUtils";
-import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-const PhotoScreen = () => {
+const PromptScreen = () => {
+  const route = useRoute();
   const navigation = useNavigation();
-  const [imageUrls, setImageUrls] = useState(["", "", "", "", "", ""]);
-  const [imageBlobs, setImageBlobs] = useState([]);
+  const [userData, setUserData] = useState();
 
   useEffect(() => {
-    getRegistrationProgress("Photos").then((progressData) => {
-      if (progressData && progressData.imageUrls) {
-        const loadedUrls =
-          progressData.imageUrls.length < 6
-            ? [
-                ...progressData.imageUrls,
-                ...new Array(6 - progressData.imageUrls.length).fill(""),
-              ]
-            : progressData.imageUrls;
-        setImageUrls(loadedUrls);
-      }
-    });
+    getAllUserData();
   }, []);
 
-  const handleAddImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Sorry, we need camera roll permissions to make this work!");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      allowsEditing: true,
-    });
-
-    if (!result.canceled) {
-      const pickedImage = result.assets[0];
-      console.log("Image picked:", pickedImage);
-
-      const index = imageUrls.findIndex((url) => url === "");
-
-      if (index !== -1) {
-        const updatedUrls = [...imageUrls];
-        updatedUrls[index] = pickedImage.uri;
-        setImageUrls(updatedUrls);
-
-        const updatedBlobs = [...imageBlobs];
-        updatedBlobs[index] = {
-          uri: pickedImage.uri,
-          type: pickedImage.type || "image/jpeg",
-          name: pickedImage.fileName || `upload_${Date.now()}.jpg`,
-        };
-        setImageBlobs(updatedBlobs);
-      }
-    } else {
-      console.log("User canceled image picker");
-    }
-  };
-
-  const handleRemoveImage = (index) => {
-    const updatedUrls = [...imageUrls];
-    updatedUrls[index] = ""; // Reset the specific index to empty
-    setImageUrls(updatedUrls);
-
-    const updatedBlobs = [...imageBlobs];
-    updatedBlobs[index] = null; // Remove the blob at the specific index
-    setImageBlobs(updatedBlobs);
-  };
-
-  const handleNext = async () => {
+  const getAllUserData = async () => {
     try {
-      // Code for uploading images goes here...
+      const screens = [
+        "Name",
+        "Email",
+        "Birth",
+        "Location",
+        "Gender",
+        "Type",
+        "Dating",
+        "LookingFor",
+        "Hometown",
+        "Photos",
+      ];
 
-      saveRegistrationProgress("Photos", { imageUrls });
-      navigation.navigate("auth/registration/PromptScreen");
+      let userData = {};
+
+      for (const screenName of screens) {
+        const screenData = await getRegistrationProgress(screenName);
+        if (screenData) {
+          userData = { ...userData, ...screenData };
+        }
+      }
+
+      setUserData(userData);
     } catch (error) {
-      console.error("Error uploading images:", error);
+      console.error("Error retrieving user data:", error);
+    }
+  };
+
+  const handleNext = () => {
+    if (route.params && route.params.prompts) {
+      saveRegistrationProgress("Prompts", { prompts: route.params.prompts });
+      navigation.navigate("auth/registration/PreFinalScreen");
+    } else {
+      navigation.navigate("auth/registration/PreFinalScreen");
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <View
-        style={{
-          marginTop: 90,
-          marginHorizontal: 20,
-          backgroundColor: "#FFFFFF",
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              borderColor: "black",
-              borderWidth: 2,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <MaterialIcons name="photo-camera-back" size={22} color="black" />
+    <ScrollView style={styles.container}>
+      <View style={styles.contentContainer}>
+        {/* Header */}
+        <View style={styles.headerContainer}>
+          <View style={styles.iconContainer}>
+            <AntDesign name="eye" size={22} color="black" />
           </View>
           <Image
-            style={{ width: 100, height: 40 }}
+            style={styles.logo}
             source={{
               uri: "https://cdn-icons-png.flaticon.com/128/10613/10613685.png",
             }}
           />
         </View>
 
-        <Text
-          style={{
-            fontSize: 25,
-            fontWeight: "bold",
-            fontFamily: "GeezaPro-Bold",
-            marginTop: 15,
-          }}
-        >
-          Pick your videos and photos
-        </Text>
+        {/* Title */}
+        <Text style={styles.titleText}>Write your profile answers</Text>
 
-        <View style={{ marginTop: 20 }}>
-          {[0, 3].map((startIndex) => (
-            <View
-              key={startIndex}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                gap: 20,
-                marginTop: startIndex === 3 ? 20 : 0,
-              }}
-            >
-              {imageUrls.slice(startIndex, startIndex + 3).map((url, index) => (
+        {/* Prompts */}
+        <View style={styles.promptsContainer}>
+          {route?.params?.prompts ? (
+            route?.params?.prompts.map((item, index) => (
+              <Pressable
+                key={index}
+                onPress={() =>
+                  navigation.navigate("auth/registration/ShowPromptScreen")
+                }
+                style={styles.promptBox}
+              >
+                <Text style={styles.promptQuestion}>{item?.question}</Text>
+                <Text style={styles.promptAnswer}>{item?.answer}</Text>
+              </Pressable>
+            ))
+          ) : (
+            <View>
+              {[...Array(3)].map((_, index) => (
                 <Pressable
                   key={index}
-                  onLongPress={() => handleRemoveImage(startIndex + index)}
-                  style={{
-                    borderColor: "#581845",
-                    borderWidth: url ? 0 : 2,
-                    flex: 1,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    borderStyle: "dashed",
-                    borderRadius: 10,
-                    height: 100,
-                    backgroundColor: url ? "transparent" : "#f0f0f0",
-                  }}
+                  onPress={() =>
+                    navigation.navigate("auth/registration/ShowPromptScreen")
+                  }
+                  style={styles.promptBox}
                 >
-                  {url ? (
-                    <Image
-                      source={{ uri: url }}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: 10,
-                        resizeMode: "cover",
-                      }}
-                    />
-                  ) : (
-                    <EvilIcons name="image" size={22} color="black" />
-                  )}
+                  <Text style={styles.placeholderText}>
+                    Select a Prompt and write your own answer
+                  </Text>
                 </Pressable>
               ))}
             </View>
-          ))}
+          )}
         </View>
 
-        <View style={{ marginVertical: 10 }}>
-          <Text style={{ color: "gray", fontSize: 15 }}>Drag to reorder</Text>
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: "500",
-              color: "#581845",
-              marginTop: 3,
-            }}
-          >
-            Add four to six photos
-          </Text>
-        </View>
-
-        <View style={{ marginTop: 25 }}>
-          <Text>Add a picture of yourself</Text>
-          <Button onPress={handleAddImage} title="Pick Image" />
-        </View>
-
+        {/* Next Button */}
         <TouchableOpacity
           onPress={handleNext}
           activeOpacity={0.8}
-          style={{ marginTop: 30, marginLeft: "auto" }}
+          style={styles.nextButton}
         >
           <MaterialCommunityIcons
             name="arrow-right-circle"
             size={45}
             color="#581845"
-            style={{ alignSelf: "center", marginTop: 20 }}
           />
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </ScrollView>
   );
 };
 
-export default PhotoScreen;
+export default PromptScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  contentContainer: {
+    marginTop: 90,
+    marginHorizontal: 20,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logo: {
+    width: 100,
+    height: 40,
+    marginLeft: 10,
+  },
+  titleText: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginTop: 15,
+    color: "#333",
+  },
+  promptsContainer: {
+    marginTop: 20,
+  },
+  promptBox: {
+    borderColor: "#707070",
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    borderStyle: "dashed",
+    borderRadius: 10,
+    paddingVertical: 20,
+    marginBottom: 15,
+  },
+  promptQuestion: {
+    fontWeight: "600",
+    fontSize: 15,
+    fontStyle: "italic",
+    textAlign: "center",
+    color: "#333",
+  },
+  promptAnswer: {
+    fontWeight: "600",
+    fontSize: 15,
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 5,
+    color: "#581845",
+  },
+  placeholderText: {
+    fontWeight: "600",
+    fontSize: 15,
+    fontStyle: "italic",
+    textAlign: "center",
+    color: "gray",
+  },
+  nextButton: {
+    marginTop: 30,
+    alignSelf: "flex-end",
+  },
+});
