@@ -6,15 +6,15 @@ import {
   Pressable,
   Alert,
   Platform,
+  Dimensions,
+  Image,
 } from "react-native";
 import React from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import Entypo from "react-native-vector-icons/Entypo";
 import AntDesign from "react-native-vector-icons/AntDesign";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import axios from "axios";
 import Carousel from "react-native-reanimated-carousel";
-import { Dimensions, Image } from "react-native";
 import constants from "../../../constants/api";
 
 const screenWidth = Dimensions.get("window").width;
@@ -62,48 +62,76 @@ const HandleLikeScreen = () => {
   };
 
   return (
-    <>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.likesCount}>All {route?.params?.likes}</Text>
-          <Text style={styles.backText} onPress={() => navigation.goBack()}>
-            Back
-          </Text>
-        </View>
+    <View style={{ flex: 1, backgroundColor: "white" }}>
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.goBackButton}
+        >
+          <AntDesign name="arrowleft" size={24} color="black" />
+        </Pressable>
+      </View>
 
+      <ScrollView style={styles.container}>
         {route?.params?.imageUrls?.length > 0 && (
           <Carousel
             width={screenWidth}
             height={350}
-            data={route?.params?.imageUrls}
+            data={route?.params?.imageUrls.filter((img) => img !== "")}
             renderItem={({ item }) => (
               <Image style={styles.profileImage} source={{ uri: item }} />
             )}
+            loop
           />
         )}
 
         <View style={styles.detailsContainer}>
-          <View style={styles.profileHeader}>
-            <Text style={styles.profileName}>{route?.params?.name}</Text>
-            <View style={styles.newTag}>
-              <Text style={styles.newTagText}>new here</Text>
-            </View>
+          <Text style={styles.profileName}>
+            {route?.params?.firstName + " " + route?.params?.lastName}
+          </Text>
+          <Text style={styles.bio}>
+            {route?.params?.bio || "No bio provided."}
+          </Text>
+          <View style={styles.additionalInfo}>
+            {route?.params?.age && (
+              <Text style={styles.infoText}>Age: {route?.params?.age}</Text>
+            )}
+            {route?.params?.gender && (
+              <Text style={styles.infoText}>
+                Gender: {route?.params?.gender}
+              </Text>
+            )}
+            {route?.params?.province && (
+              <Text style={styles.infoText}>
+                Province: {route?.params?.province}
+              </Text>
+            )}
+            {route?.params?.district && (
+              <Text style={styles.infoText}>
+                District: {route?.params?.district}
+              </Text>
+            )}
           </View>
-          <Entypo name="dots-three-horizontal" size={22} color="black" />
         </View>
 
-        {route?.params?.prompts?.slice(0, 3).map((prompt, index) => (
-          <View key={index} style={styles.promptCard}>
-            <Text style={styles.promptQuestion}>{prompt.question}</Text>
-            <Text style={styles.promptAnswer}>{prompt.answer}</Text>
-          </View>
-        ))}
+        {route?.params?.prompts?.length > 0 ? (
+          route?.params?.prompts.map((prompt, index) => (
+            <View key={index} style={styles.promptCard}>
+              <Text style={styles.promptQuestion}>{prompt.question}</Text>
+              <Text style={styles.promptAnswer}>{prompt.answer}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.noPromptsText}>
+            This user hasn't answered any prompts yet.
+          </Text>
+        )}
       </ScrollView>
 
       <Pressable onPress={match} style={styles.messageButton}>
         <AntDesign name="heart" size={30} color="red" />
       </Pressable>
-    </>
+    </View>
   );
 };
 
@@ -117,53 +145,54 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 55,
+    justifyContent: "space-between",
+    padding: 12,
+  },
+  goBackButton: {
+    padding: 8,
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   likesCount: {
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  backText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "blue",
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
   profileImage: {
     width: "100%",
     height: 350,
     borderRadius: 10,
     resizeMode: "cover",
+    marginVertical: 10,
   },
   detailsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginVertical: 15,
-  },
-  profileHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    paddingHorizontal: 10,
   },
   profileName: {
     fontSize: 22,
     fontWeight: "bold",
+    marginBottom: 5,
   },
-  newTag: {
-    backgroundColor: "#452c63",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
+  bio: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 10,
   },
-  newTagText: {
-    color: "white",
-    textAlign: "center",
+  additionalInfo: {
+    marginTop: 10,
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#333",
+    marginVertical: 2,
   },
   promptCard: {
     backgroundColor: "white",
-    padding: 12,
+    padding: 16,
     borderRadius: 10,
     marginVertical: 10,
     height: 150,
@@ -179,30 +208,24 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   promptAnswer: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
-    marginTop: 20,
+    marginTop: 10,
   },
-  heartButton: {
+  noPromptsText: {
+    fontSize: 16,
+    color: "#888",
+    textAlign: "center",
     marginTop: 20,
-    alignSelf: "center",
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 50,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-    elevation: 6,
   },
   messageButton: {
     position: "absolute",
-    bottom: 45,
-    right: 12,
+    bottom: 30,
+    right: 20,
     backgroundColor: "white",
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",

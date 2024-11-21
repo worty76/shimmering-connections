@@ -142,7 +142,11 @@ const LikesScreen = () => {
               <Pressable
                 onPress={() =>
                   navigation.navigate("tabs/profile/HandleLikeScreen", {
-                    name: likes[0].userId?.firstName,
+                    firstName: likes[0].userId?.firstName,
+                    lastName: likes[0].userId?.lastName,
+                    age: likes[0].userId?.age,
+                    province: likes[0].userId?.province,
+                    district: likes[0].userId?.district,
                     image: likes[0].image,
                     imageUrls: likes[0].userId?.imageUrls,
                     prompts: likes[0].userId?.prompts,
@@ -156,7 +160,7 @@ const LikesScreen = () => {
                   <Text>Liked your photo</Text>
                 </View>
                 <Text style={styles.mainName}>
-                  {likes[0].userId?.firstName}
+                  {likes[0].userId?.firstName + " " + likes[0].userId?.lastName}
                 </Text>
                 <Image
                   source={{ uri: likes[0].userId?.imageUrls[0] }}

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TextInput,
   Pressable,
+  Platform,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import Entypo from "react-native-vector-icons/Entypo";
@@ -76,33 +77,53 @@ const ChatRoom = () => {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "white" }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {messages.map((item, index) => (
-          <Pressable
-            key={index}
-            style={[
-              item?.senderId === senderId
-                ? styles.sentMessage
-                : styles.receivedMessage,
-            ]}
-          >
-            <Text style={styles.messageText}>{item?.message}</Text>
-            <Text style={styles.timestamp}>{formatTime(item?.timestamp)}</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "white" }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+    >
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: 10,
+            justifyContent: messages.length === 0 ? "flex-end" : "flex-start",
+          }}
+        >
+          {messages.length > 0 ? (
+            messages.map((item, index) => (
+              <Pressable
+                key={index}
+                style={[
+                  item?.senderId === senderId
+                    ? styles.sentMessage
+                    : styles.receivedMessage,
+                ]}
+              >
+                <Text style={styles.messageText}>{item?.message}</Text>
+                <Text style={styles.timestamp}>
+                  {formatTime(item?.timestamp)}
+                </Text>
+              </Pressable>
+            ))
+          ) : (
+            <View style={styles.noMessagesContainer}>
+              <Text style={styles.noMessagesText}>No messages yet.</Text>
+            </View>
+          )}
+        </ScrollView>
+        <View style={styles.inputContainer}>
+          <TextInput
+            value={message}
+            onChangeText={(text) => setMessage(text)}
+            style={styles.textInput}
+            placeholder="Type your message..."
+            placeholderTextColor="#888"
+          />
+          <Pressable onPress={sendMessage} style={styles.sendButton}>
+            <Text style={{ color: "white" }}>Send</Text>
           </Pressable>
-        ))}
-      </ScrollView>
-      <View style={styles.inputContainer}>
-        <Entypo style={styles.icon} name="emoji-happy" size={24} color="gray" />
-        <TextInput
-          value={message}
-          onChangeText={(text) => setMessage(text)}
-          style={styles.textInput}
-          placeholder="Type your message..."
-        />
-        <Pressable onPress={sendMessage} style={styles.sendButton}>
-          <Text style={{ color: "white" }}>Send</Text>
-        </Pressable>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -141,6 +162,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: "#dddddd",
+    backgroundColor: "white",
   },
   textInput: {
     flex: 1,
@@ -149,12 +171,25 @@ const styles = StyleSheet.create({
     borderColor: "#dddddd",
     borderRadius: 20,
     paddingHorizontal: 10,
+    backgroundColor: "#f9f9f9",
   },
   sendButton: {
     backgroundColor: "#662d91",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
+    marginLeft: 10,
+  },
+  noMessagesContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 20,
+  },
+  noMessagesText: {
+    fontSize: 16,
+    color: "#888",
+    fontStyle: "italic",
   },
 });
 
