@@ -38,6 +38,10 @@ const getClosenessScore = (
   return 2;
 };
 
+const getAgeDifferenceScore = (currentAge, otherAge) => {
+  return Math.abs(currentAge - otherAge);
+};
+
 const getProfiles = async (req, res) => {
   try {
     const { userId } = req.query;
@@ -50,12 +54,19 @@ const getProfiles = async (req, res) => {
     const allUsers = await User.find({ _id: { $ne: userId } });
 
     const usersWithScores = allUsers.map((user) => {
-      const score = getClosenessScore(
+      const geoScore = getClosenessScore(
         currentUser.province,
         currentUser.district,
         user.province,
         user.district
       );
+
+      const ageDifferenceScore = getAgeDifferenceScore(
+        currentUser.age,
+        user.age
+      );
+
+      const totalScore = geoScore + ageDifferenceScore;
 
       return {
         userId: user._id,
@@ -68,11 +79,13 @@ const getProfiles = async (req, res) => {
         prompts: user.prompts,
         dateOfBirth: user.dateOfBirth,
         gender: user.gender,
-        score,
+        geoScore,
+        ageDifferenceScore,
+        totalScore,
       };
     });
 
-    const matches = usersWithScores.sort((a, b) => a.score - b.score);
+    const matches = usersWithScores.sort((a, b) => a.totalScore - b.totalScore);
 
     res.status(200).json({ matches });
   } catch (error) {

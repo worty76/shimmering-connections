@@ -7,8 +7,8 @@ const formidable = require("formidable");
 const register = async (req, res) => {
   try {
     const { fields, files } = await doSomethingWithNodeRequest(req);
-    console.log("Parsed fields:", fields);
-    console.log("Parsed files:", files);
+    // console.log("Parsed fields:", fields);
+    // console.log("Parsed files:", files);
 
     let { prompts, imageUrls, ...userData } = fields;
 
