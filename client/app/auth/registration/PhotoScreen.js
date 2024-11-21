@@ -19,6 +19,7 @@ import {
   saveRegistrationProgress,
 } from "../../../helpers/registrationUtils";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 
 const PhotoScreen = () => {
   const navigation = useNavigation();
@@ -49,9 +50,10 @@ const PhotoScreen = () => {
   };
 
   const handleAddImage = async () => {
+    // Request permissions
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      showAlert(
+      Alert.alert(
         "Permission Denied",
         "We need camera roll permissions to proceed."
       );
@@ -61,16 +63,36 @@ const PhotoScreen = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
-      allowsEditing: true,
+      base64: false,
     });
 
     if (!result.canceled) {
       const pickedImage = result.assets[0];
-      const index = imageUrls.findIndex((url) => url === "");
-      if (index !== -1) {
-        const updatedUrls = [...imageUrls];
-        updatedUrls[index] = pickedImage.uri;
-        setImageUrls(updatedUrls);
+
+      if (pickedImage.uri.startsWith("file://")) {
+        const base64 = await FileSystem.readAsStringAsync(pickedImage.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const base64Image = `data:image/jpeg;base64,${base64}`;
+        const index = imageUrls.findIndex((url) => url === "");
+        if (index !== -1) {
+          const updatedUrls = [...imageUrls];
+          updatedUrls[index] = base64Image;
+          setImageUrls(updatedUrls);
+        } else {
+          Alert.alert("Limit Reached", "You can only upload up to 6 images.");
+        }
+      } else {
+        const base64Image = pickedImage.uri;
+        const index = imageUrls.findIndex((url) => url === "");
+        if (index !== -1) {
+          const updatedUrls = [...imageUrls];
+          updatedUrls[index] = base64Image;
+          setImageUrls(updatedUrls);
+        } else {
+          Alert.alert("Limit Reached", "You can only upload up to 6 images.");
+        }
       }
     }
   };

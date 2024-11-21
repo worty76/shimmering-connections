@@ -7,17 +7,20 @@ import {
   Image,
   ActivityIndicator,
   Dimensions,
+  SafeAreaView,
+  Pressable,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
-import AntDesign from "react-native-vector-icons/AntDesign";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import constants from "../../../constants/api";
 import Carousel from "react-native-reanimated-carousel";
+import AntDesign from "react-native-vector-icons/AntDesign";
 
 const { width } = Dimensions.get("window");
 
 const ProfileDetailsScreen = () => {
   const route = useRoute();
+  const navigation = useNavigation();
   const { profileId } = route.params;
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +44,7 @@ const ProfileDetailsScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.loading}>
+      <View style={[styles.loading, { backgroundColor: "#fff" }]}>
         <ActivityIndicator size="large" color="#452c63" />
       </View>
     );
@@ -49,52 +52,97 @@ const ProfileDetailsScreen = () => {
 
   if (!profile) {
     return (
-      <View style={styles.errorContainer}>
+      <View style={[styles.errorContainer, { backgroundColor: "#fff" }]}>
         <Text style={styles.errorText}>Profile not found</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ marginTop: 55 }}>
+    <SafeAreaView style={{ backgroundColor: "#fff", flex: 1 }}>
+      <View style={styles.goBackContainer}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.goBackButton}
+        >
+          <AntDesign name="arrowleft" size={24} color="black" />
+          <Text style={styles.goBackText}>Go Back</Text>
+        </Pressable>
+      </View>
+
       <ScrollView>
         <View style={styles.container}>
           <View style={styles.header}>
             <View style={styles.profileHeader}>
-              <Text style={styles.profileName}>{profile.firstName}</Text>
+              <Text style={styles.profileName}>
+                {profile.firstName + " " + (profile.lastName || "")}
+              </Text>
               <View style={styles.newBadge}>
-                <Text style={styles.badgeText}>new here</Text>
+                <Text style={styles.badgeText}>New Here</Text>
               </View>
             </View>
           </View>
 
-          {profile.imageUrls?.length > 0 && (
+          {profile.imageUrls?.length > 0 ? (
             <Carousel
               loop
               width={width - 24}
               height={350}
               autoPlay={true}
-              data={profile.imageUrls}
+              data={profile.imageUrls.filter((img) => img !== "")}
               scrollAnimationDuration={1000}
               renderItem={({ item }) => (
                 <View style={styles.carouselContainer}>
                   <Image style={styles.carouselImage} source={{ uri: item }} />
                 </View>
               )}
+              pagingEnabled
             />
+          ) : (
+            <View style={styles.placeholderContainer}>
+              <Text style={styles.placeholderText}>
+                No images available for this profile.
+              </Text>
+            </View>
           )}
 
-          {profile.prompts?.map((prompt, index) => (
-            <View key={index} style={styles.promptContainer}>
-              <View style={styles.promptCard}>
-                <Text style={styles.promptQuestion}>{prompt.question}</Text>
-                <Text style={styles.promptAnswer}>{prompt.answer}</Text>
+          <View style={styles.additionalInfo}>
+            {profile.bio && (
+              <Text style={styles.infoText}>Bio: {profile.bio}</Text>
+            )}
+            {profile.age && (
+              <Text style={styles.infoText}>Age: {profile.age}</Text>
+            )}
+            {profile.gender && (
+              <Text style={styles.infoText}>Gender: {profile.gender}</Text>
+            )}
+            {profile.province && (
+              <Text style={styles.infoText}>Province: {profile.province}</Text>
+            )}
+            {profile.district && (
+              <Text style={styles.infoText}>District: {profile.district}</Text>
+            )}
+          </View>
+
+          {profile.prompts?.length > 0 ? (
+            profile.prompts.map((prompt, index) => (
+              <View key={index} style={styles.promptContainer}>
+                <View style={styles.promptCard}>
+                  <Text style={styles.promptQuestion}>{prompt.question}</Text>
+                  <Text style={styles.promptAnswer}>{prompt.answer}</Text>
+                </View>
               </View>
+            ))
+          ) : (
+            <View style={styles.placeholderContainer}>
+              <Text style={styles.placeholderText}>
+                This user hasn't answered any prompts yet.
+              </Text>
             </View>
-          ))}
+          )}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -119,6 +167,22 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginVertical: 12,
   },
+  goBackContainer: {
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  goBackButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+  },
+  goBackText: {
+    color: "black",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -129,7 +193,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   profileName: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#333",
   },
@@ -144,6 +208,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "white",
     fontSize: 12,
+    fontWeight: "600",
   },
   carouselContainer: {
     marginVertical: 10,
@@ -156,28 +221,30 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
     borderRadius: 10,
   },
-  imageIconContainer: {
-    position: "absolute",
-    bottom: 10,
-    right: 10,
-    backgroundColor: "white",
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+  placeholderContainer: {
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    marginVertical: 20,
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: "#888",
+    textAlign: "center",
+  },
+  additionalInfo: {
+    marginTop: 20,
+  },
+  infoText: {
+    fontSize: 16,
+    color: "#333",
+    marginVertical: 5,
   },
   promptContainer: {
     marginVertical: 15,
   },
   promptCard: {
-    backgroundColor: "white",
-    padding: 12,
+    backgroundColor: "#f7f7f7",
+    padding: 16,
     borderRadius: 10,
     height: 150,
     justifyContent: "center",
@@ -188,12 +255,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   promptQuestion: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 8,
+    color: "#452c63",
   },
   promptAnswer: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
-    marginTop: 20,
+    color: "#333",
   },
 });

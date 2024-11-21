@@ -3,81 +3,161 @@ import {
   Text,
   StyleSheet,
   Image,
-  Pressable,
   SafeAreaView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
-import { AntDesign } from "@expo/vector-icons";
+import { EvilIcons } from "@expo/vector-icons";
 import axios from "axios";
 import api from "../../../constants/api";
 
 const EditPhotosScreen = ({ route, navigation }) => {
   const { currentImages, userId } = route.params;
-  const [images, setImages] = useState(currentImages || []);
+  const [imageUrls, setImageUrls] = useState(
+    currentImages.length < 6
+      ? [...currentImages, ...new Array(6 - currentImages.length).fill("")]
+      : currentImages
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
-  const updateImage = async (index) => {
+  const showAlert = (title, message) => {
+    Alert.alert(title, message, [{ text: "OK" }]);
+  };
+
+  const handleAddImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      showAlert(
+        "Permission Denied",
+        "We need camera roll permissions to proceed."
+      );
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
+      base64: true,
     });
 
     if (!result.canceled) {
-      const updatedImages = [...images];
-      updatedImages[index] = result.assets[0].uri;
-      setImages(updatedImages);
+      const pickedImage = result.assets[0];
+      const base64Image = pickedImage.uri;
+      const index = imageUrls.findIndex((url) => url === "");
+      if (index !== -1) {
+        const updatedUrls = [...imageUrls];
+        updatedUrls[index] = base64Image;
+        setImageUrls(updatedUrls);
+      } else {
+        showAlert("Limit Reached", "You can only upload up to 6 images.");
+      }
     }
   };
 
-  const removeImage = (index) => {
-    const updatedImages = [...images];
-    updatedImages[index] = null;
-    setImages(updatedImages);
+  const handleRemoveImage = (index) => {
+    const updatedUrls = [...imageUrls];
+    updatedUrls[index] = "";
+    setImageUrls(updatedUrls);
   };
 
   const saveImages = async () => {
+    const filteredImages = imageUrls.filter((url) => url !== ""); // Filter out empty slots
+    if (filteredImages.length < 1) {
+      showAlert("Minimum Photos Required", "Please add at least one photo.");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const filteredImages = images.filter((img) => img !== null);
-      await axios.put(`${api.API_URL}/api/user/update-images/${userId}`, {
-        imageUrls: filteredImages,
+      const formData = new FormData();
+
+      // Add current images (base64 or URLs) to FormData
+      filteredImages.forEach((image) => {
+        formData.append("imageUrls", image);
       });
-      navigation.goBack();
+
+      formData.append("userId", userId);
+
+      const response = await axios.put(
+        `${api.API_URL}/api/user/update-images`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        const { updatedImages } = response.data;
+
+        setImageUrls([
+          ...updatedImages,
+          ...new Array(6 - updatedImages.length).fill(""),
+        ]);
+        showAlert("Success", "Images updated successfully!");
+      } else {
+        showAlert("Error", "Failed to update images. Please try again.");
+      }
     } catch (error) {
       console.error("Error updating images:", error);
+      showAlert("Error", "An error occurred while updating images.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Edit Your Photos</Text>
-      <View style={styles.imagesContainer}>
-        {images.map((image, index) => (
-          <View key={index} style={styles.imageWrapper}>
-            {image ? (
-              <>
-                <Image source={{ uri: image }} style={styles.image} />
-                <Pressable
-                  onPress={() => removeImage(index)}
-                  style={styles.removeButton}
+      <View style={{ margin: 20 }}>
+        <Text style={styles.title}>Edit Your Photos</Text>
+        <View style={styles.photoGrid}>
+          {imageUrls.map((url, index) => (
+            <View key={index} style={styles.photoWrapper}>
+              {url ? (
+                <>
+                  <Image source={{ uri: url }} style={styles.photo} />
+                  <TouchableOpacity
+                    onPress={() => handleRemoveImage(index)}
+                    style={styles.removeIconWrapper}
+                  >
+                    <EvilIcons name="close" size={30} color="#fff" />
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <TouchableOpacity
+                  onLongPress={() => handleRemoveImage(index)}
+                  style={[styles.photoContainer, styles.emptyPhotoContainer]}
                 >
-                  <AntDesign name="closecircle" size={20} color="red" />
-                </Pressable>
-              </>
-            ) : (
-              <Pressable
-                onPress={() => updateImage(index)}
-                style={styles.addImagePlaceholder}
-              >
-                <AntDesign name="plus" size={30} color="#B0B0B0" />
-                <Text style={styles.addImageText}>Add Photo</Text>
-              </Pressable>
-            )}
-          </View>
-        ))}
+                  <EvilIcons name="image" size={30} color="#aaa" />
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+        </View>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddImage}>
+          <Text style={styles.addButtonText}>Add Photos</Text>
+        </TouchableOpacity>
+
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#008B8B"
+            style={styles.loader}
+          />
+        ) : (
+          <TouchableOpacity
+            onPress={saveImages}
+            style={styles.saveButton}
+            disabled={isLoading}
+          >
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          </TouchableOpacity>
+        )}
       </View>
-      <Pressable onPress={saveImages} style={styles.saveButton}>
-        <Text style={styles.saveText}>Save Changes</Text>
-      </Pressable>
     </SafeAreaView>
   );
 };
@@ -86,11 +166,8 @@ export default EditPhotosScreen;
 
 const styles = StyleSheet.create({
   container: {
-    margin: 20,
     flex: 1,
-    backgroundColor: "#F9F9F9",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 24,
@@ -99,45 +176,56 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: "#333",
   },
-  imagesContainer: {
+  photoGrid: {
+    marginTop: 20,
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: 10,
     justifyContent: "space-between",
   },
-  imageWrapper: {
+  photoWrapper: {
+    position: "relative",
     width: "30%",
     aspectRatio: 1,
-    marginBottom: 15,
-    backgroundColor: "#EDEDED",
     borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#D0D0D0",
-    position: "relative",
+    overflow: "hidden", // Ensures the icon is clipped within the photo bounds
   },
-  image: {
+  photo: {
     width: "100%",
     height: "100%",
+    borderRadius: 10,
     resizeMode: "cover",
   },
-  addImagePlaceholder: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  addImageText: {
-    fontSize: 12,
-    color: "#B0B0B0",
-    marginTop: 5,
-  },
-  removeButton: {
+  removeIconWrapper: {
     position: "absolute",
     top: 5,
     right: 5,
-    backgroundColor: "white",
+    backgroundColor: "rgba(0, 0, 0, 0.6)", // Dark translucent background
     borderRadius: 15,
-    padding: 2,
+    width: 30,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyPhotoContainer: {
+    borderWidth: 2,
+    borderColor: "#ddd",
+    borderStyle: "dashed",
+    backgroundColor: "#f9f9f9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addButton: {
+    backgroundColor: "#008B8B",
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 20,
+    alignItems: "center",
+  },
+  addButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
   saveButton: {
     backgroundColor: "#008B8B",
@@ -146,9 +234,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 30,
   },
-  saveText: {
-    color: "white",
+  saveButtonText: {
+    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  loader: {
+    marginTop: 20,
   },
 });

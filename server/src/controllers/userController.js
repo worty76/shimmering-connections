@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const turf = require("@turf/turf");
 const axios = require("axios");
+const cloudinary = require("../utils/cloudinary");
+const formidable = require("formidable");
 
 require("dotenv").config();
 
@@ -175,7 +177,10 @@ const receivedLikes = async (req, res) => {
     const { userId } = req.params;
 
     const likes = await User.findById(userId)
-      .populate("receivedLikes.userId", "firstName imageUrls prompts")
+      .populate(
+        "receivedLikes.userId",
+        "firstName lastName age province district imageUrls prompts gender"
+      )
       .select("receivedLikes");
 
     res.status(200).json({ receivedLikes: likes.receivedLikes });
@@ -326,6 +331,123 @@ const generateBio = async (req, res) => {
   }
 };
 
+const updateBio = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { bio } = req.body;
+    console.log(userId + " " + bio);
+
+    if (!userId || !bio) {
+      return res.status(400).json({ message: "User ID and bio are required." });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { bio },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Bio updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Error updating bio:", error);
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
+const updateImages = async (req, res) => {
+  try {
+    const { fields, files } = await doSomethingWithNodeRequest(req);
+    const { userId, imageUrls, removedImages } = fields;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    let parsedImageUrls = [];
+    if (typeof imageUrls === "string") {
+      try {
+        parsedImageUrls = JSON.parse(imageUrls);
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid imageUrls format." });
+      }
+    } else if (Array.isArray(imageUrls)) {
+      parsedImageUrls = imageUrls;
+    }
+
+    const uploadedImageUrls = [];
+    const imageFiles = parsedImageUrls.filter((url) => url !== "") || [];
+
+    for (const file of imageFiles) {
+      if (file.startsWith("http")) {
+        uploadedImageUrls.push(file);
+      } else {
+        try {
+          const uploadResponse = await cloudinary.uploader.upload(file, {
+            folder: "user_uploads",
+          });
+          uploadedImageUrls.push(uploadResponse.secure_url);
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          return res
+            .status(500)
+            .json({ message: "Image upload failed", error: uploadError });
+        }
+      }
+    }
+
+    if (removedImages && Array.isArray(removedImages)) {
+      for (const removedImage of removedImages) {
+        if (removedImage.startsWith("http")) {
+          const publicId = removedImage.split("/").pop().split(".")[0];
+          try {
+            await cloudinary.uploader.destroy(`user_uploads/${publicId}`);
+          } catch (deleteError) {
+            console.error(`Error deleting image: ${removedImage}`, deleteError);
+          }
+        }
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { imageUrls: uploadedImageUrls },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    res.status(200).json({
+      message: "Images updated successfully",
+      updatedImages: uploadedImageUrls,
+    });
+  } catch (error) {
+    console.error("Error updating images:", error);
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
+function doSomethingWithNodeRequest(req) {
+  return new Promise((resolve, reject) => {
+    const form = formidable({ multiples: true, keepExtensions: true });
+    form.parse(req, (error, fields, files) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      console.log(fields + files);
+      resolve({ fields, files });
+    });
+  });
+}
+
 const userController = {
   getUserData,
   getProfiles,
@@ -335,6 +457,8 @@ const userController = {
   getMatches,
   updateProfile,
   generateBio,
+  updateBio,
+  updateImages,
 };
 
 module.exports = userController;

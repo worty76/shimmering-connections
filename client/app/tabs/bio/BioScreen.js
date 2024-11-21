@@ -28,11 +28,12 @@ const Profile = () => {
   const [userId, setUserId] = useState("");
   const [user, setUser] = useState({});
   const [profileImages, setProfileImages] = useState([]);
-  const [bio, setBio] = useState(""); // State for bio
-  const [suggestions, setSuggestions] = useState([]); // State for suggestions
+  const [bio, setBio] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
@@ -61,7 +62,7 @@ const Profile = () => {
       const data = response?.data?.user;
       setUser(data);
       setProfileImages(data?.imageUrls || []);
-      setBio(data?.bio || ""); // Load bio from backend
+      setBio(data?.bio || "");
     } catch (error) {
       console.error("Error fetching profile data:", error);
     } finally {
@@ -83,6 +84,30 @@ const Profile = () => {
       alert("Failed to fetch a bio suggestion.");
     } finally {
       setSuggestionsLoading(false);
+    }
+  };
+
+  const saveBio = async () => {
+    setIsSaving(true);
+    try {
+      const response = await axios.put(
+        `${api.API_URL}/api/user/update-bio/${userId}`,
+        {
+          bio,
+        }
+      );
+
+      if (response.status === 200) {
+        alert("Bio updated successfully!");
+        setBio(response.data.user.bio);
+      } else {
+        alert("Failed to update bio.");
+      }
+    } catch (error) {
+      console.error("Error saving bio:", error);
+      alert("An error occurred while saving the bio.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -125,7 +150,7 @@ const Profile = () => {
                 <Carousel
                   width={screenWidth * 0.9}
                   height={carouselHeight}
-                  data={profileImages}
+                  data={profileImages.filter((img) => img !== "")}
                   renderItem={renderItem}
                   keyExtractor={(item, index) => index.toString()}
                 />
@@ -150,15 +175,23 @@ const Profile = () => {
                 placeholderTextColor="#888"
                 multiline
               />
+              {/* Save Button for Bio */}
+              <Pressable
+                onPress={saveBio}
+                style={styles.saveButton}
+                disabled={isSaving}
+              >
+                <Text style={styles.saveButtonText}>
+                  {isSaving ? "Saving..." : "Save Bio"}
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={fetchSuggestions}
                 style={styles.suggestionsButton}
                 disabled={suggestionsLoading}
               >
                 <Text style={styles.suggestionsButtonText}>
-                  {suggestionsLoading
-                    ? "Loading..."
-                    : "Get random bio based on your prompts"}
+                  {suggestionsLoading ? "Loading..." : "Generate bio"}
                 </Text>
               </Pressable>
               <Pressable
@@ -175,7 +208,6 @@ const Profile = () => {
         )}
       </ScrollView>
 
-      {/* Suggestions Modal */}
       <Modal
         visible={isModalVisible}
         transparent={true}
@@ -220,7 +252,6 @@ const styles = StyleSheet.create({
   },
   imageSlider: {
     height: carouselHeight * 1.4,
-    marginBottom: 20,
     alignItems: "center",
   },
   carouselItem: {
@@ -256,7 +287,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#900C3F",
     padding: 10,
     borderRadius: 5,
-    marginTop: 10,
   },
   addImageText: {
     color: "white",
@@ -282,9 +312,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     color: "#333",
-    width: "90%",
+    width: 300,
+    height: 100,
     marginVertical: 10,
     textAlignVertical: "top",
+  },
+  saveButton: {
+    backgroundColor: "#008B8B",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  saveButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   suggestionsButton: {
     backgroundColor: "#008B8B",
