@@ -36,7 +36,7 @@ const getClosenessScore = (
     // Same Province
     return 1;
   }
-  // Not same province
+  // Not same province, far district
   return 2;
 };
 
@@ -364,6 +364,8 @@ const updateImages = async (req, res) => {
   try {
     const { fields, files } = await doSomethingWithNodeRequest(req);
     const { userId, imageUrls, removedImages } = fields;
+    console.log(imageUrls);
+    console.log(removedImages);
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });

@@ -32,7 +32,7 @@ const GenderScreen = () => {
   const handleNext = () => {
     if (gender.trim() !== "") {
       saveRegistrationProgress("Gender", { gender });
-      navigation.navigate("auth/registration/TypeScreen");
+      navigation.navigate("TypeScreen");
     } else {
       alert("Please select your gender before proceeding.");
     }

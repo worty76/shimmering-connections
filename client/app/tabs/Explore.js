@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -12,6 +12,7 @@ import { UserCard, MatchButton, NoMoreMatches } from "../../components";
 import axios from "axios";
 import Colors from "../../constants/colors";
 import constants from "../../constants/api";
+import { useFocusEffect } from "expo-router";
 
 const Explore = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -48,11 +49,19 @@ const Explore = ({ navigation }) => {
     }
   }, [userId]);
 
-  useEffect(() => {
-    if (auth && userId) {
-      fetchProfile();
-    }
-  }, [auth, userId]);
+  // useEffect(() => {
+  //   if (auth && userId) {
+  //     fetchProfile();
+  //   }
+  // }, [auth, userId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (auth && userId) {
+        fetchProfile();
+      }
+    }, [auth, userId])
+  );
 
   const fetchProfile = async () => {
     try {
@@ -110,7 +119,7 @@ const Explore = ({ navigation }) => {
       {user && (
         <UserCard
           onPress={() =>
-            navigation.navigate("tabs/profile/ProfileDetailsScreen", {
+            navigation.navigate("ProfileDetailsScreen", {
               profileId: user.userId,
             })
           }

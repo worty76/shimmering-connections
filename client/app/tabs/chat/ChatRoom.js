@@ -7,6 +7,9 @@ import {
   TextInput,
   Pressable,
   Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import Entypo from "react-native-vector-icons/Entypo";
@@ -82,61 +85,84 @@ const ChatRoom = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
     >
-      <View style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingBottom: 10,
-            justifyContent: messages.length === 0 ? "flex-end" : "flex-start",
-          }}
-        >
-          {messages.length > 0 ? (
-            messages.map((item, index) => (
-              <Pressable
-                key={index}
-                style={[
-                  item?.senderId === senderId
-                    ? styles.sentMessage
-                    : styles.receivedMessage,
-                ]}
-              >
-                <Text style={styles.messageText}>{item?.message}</Text>
-                <Text style={styles.timestamp}>
-                  {formatTime(item?.timestamp)}
-                </Text>
-              </Pressable>
-            ))
-          ) : (
-            <View style={styles.noMessagesContainer}>
-              <Text style={styles.noMessagesText}>No messages yet.</Text>
-            </View>
-          )}
-        </ScrollView>
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={message}
-            onChangeText={(text) => setMessage(text)}
-            style={styles.textInput}
-            placeholder="Type your message..."
-            placeholderTextColor="#888"
-          />
-          <Pressable onPress={sendMessage} style={styles.sendButton}>
-            <Text style={{ color: "white" }}>Send</Text>
-          </Pressable>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1 }}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Entypo name="chevron-left" size={30} color="black" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Chat Room</Text>
+          </View>
+
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingBottom: 60,
+              justifyContent: messages.length === 0 ? "flex-end" : "flex-start",
+            }}
+          >
+            {messages.length > 0 ? (
+              messages.map((item, index) => (
+                <Pressable
+                  key={index}
+                  style={[
+                    item?.senderId === senderId
+                      ? styles.sentMessage
+                      : styles.receivedMessage,
+                  ]}
+                >
+                  <Text style={styles.messageText}>{item?.message}</Text>
+                  <Text style={styles.timestamp}>
+                    {formatTime(item?.timestamp)}
+                  </Text>
+                </Pressable>
+              ))
+            ) : (
+              <View style={styles.noMessagesContainer}>
+                <Text style={styles.noMessagesText}>No messages yet.</Text>
+              </View>
+            )}
+          </ScrollView>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={message}
+              onChangeText={(text) => setMessage(text)}
+              style={styles.textInput}
+              placeholder="Type your message..."
+              placeholderTextColor="#888"
+            />
+            <Pressable onPress={sendMessage} style={styles.sendButton}>
+              <Text style={{ color: "white" }}>Send</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    backgroundColor: "white",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginLeft: 10,
+  },
   sentMessage: {
     alignSelf: "flex-end",
     backgroundColor: "#662d91",
     padding: 8,
     borderRadius: 7,
     margin: 10,
-    maxWidth: "60%",
+    maxWidth: "70%",
   },
   receivedMessage: {
     alignSelf: "flex-start",
@@ -144,7 +170,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 7,
     margin: 10,
-    maxWidth: "60%",
+    maxWidth: "70%",
   },
   messageText: {
     fontSize: 15,
@@ -163,6 +189,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#dddddd",
     backgroundColor: "white",
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
   },
   textInput: {
     flex: 1,

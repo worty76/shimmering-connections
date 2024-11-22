@@ -132,9 +132,6 @@ const Profile = () => {
   const renderItem = ({ item }) => (
     <View style={styles.carouselItem}>
       <Image source={{ uri: item }} style={styles.carouselImage} />
-      <Pressable style={styles.deleteIcon}>
-        <AntDesign name="delete" size={26} color="red" />
-      </Pressable>
     </View>
   );
 
@@ -196,7 +193,7 @@ const Profile = () => {
               </Pressable>
               <Pressable
                 onPress={() =>
-                  navigation.navigate("tabs/profile/EditInfoScreen", { userId })
+                  navigation.navigate("EditInfoScreen", { userId })
                 }
                 style={styles.editButton}
               >

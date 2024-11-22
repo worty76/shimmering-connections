@@ -106,7 +106,7 @@ const PhotoScreen = () => {
     setIsLoading(true);
     try {
       saveRegistrationProgress("Photos", { imageUrls });
-      navigation.navigate("auth/registration/PromptScreen");
+      navigation.navigate("PromptScreen");
     } catch (error) {
       console.error("Error saving photos:", error);
       showAlert("Error", "Failed to save photos. Please try again.");
