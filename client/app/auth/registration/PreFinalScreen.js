@@ -120,7 +120,7 @@ const PreFinalScreen = () => {
         await AsyncStorage.setItem("token", token);
         setToken(token);
         clearAllScreenData();
-        navigation.navigate("tabs/index", { screen: "tabs/index" });
+        navigation.navigate("index", { screen: "index" });
       }
     } catch (error) {
       console.error("Error registering user:", error);

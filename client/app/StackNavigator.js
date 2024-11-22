@@ -2,7 +2,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./auth/LoginScreen";
-import RegisterScreen from "./auth/RegisterScreen";
 import { AuthContext } from "../context/AuthContext";
 import { NavigationContainer } from "@react-navigation/native";
 import { useContext } from "react";
@@ -51,85 +50,79 @@ const StackNavigator = () => {
   const AuthStack = () => (
     <Stack.Navigator>
       <Stack.Screen
-        name="auth/login"
+        name="Login"
         component={LoginScreen}
         options={{ headerShown: false }}
       />
-
       <Stack.Screen
-        name="auth/register"
-        component={RegisterScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="auth/registration/BasicInfo"
+        name="BasicInfo"
         component={BasicInfo}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/NameScreen"
+        name="NameScreen"
         component={NameScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/EmailScreen"
+        name="EmailScreen"
         component={EmailScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/PasswordScreen"
+        name="PasswordScreen"
         component={PasswordScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/BirthScreen"
+        name="BirthScreen"
         component={BirthScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/GenderScreen"
+        name="GenderScreen"
         component={GenderScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/TypeScreen"
+        name="TypeScreen"
         component={TypeScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/DatingTypeScreen"
+        name="DatingTypeScreen"
         component={DatingTypeScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/LookingForScreen"
+        name="LookingForScreen"
         component={LookingForScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/HomeTownScreen"
+        name="HomeTownScreen"
         component={HomeTownScreen}
         options={{ headerShown: false }}
       />
 
       <Stack.Screen
-        name="auth/registration/PhotoScreen"
+        name="PhotoScreen"
         component={PhotoScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/PromptScreen"
+        name="PromptScreen"
         component={PromptScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="auth/registration/ShowPromptScreen"
+        name="ShowPromptScreen"
         component={ShowPromptScreen}
         options={{ headerShown: false }}
       />
 
       <Stack.Screen
-        name="auth/registration/PreFinalScreen"
+        name="PreFinalScreen"
         component={PreFinalScreen}
         options={{ headerShown: false }}
       />
@@ -140,23 +133,23 @@ const StackNavigator = () => {
     return (
       <Stack.Navigator>
         <Stack.Screen
-          name="tabs/index"
+          name="index"
           component={BottomTabs}
           options={{ headerShown: false }}
         />
 
         <Stack.Screen
-          name="tabs/profile/ProfileDetailsScreen"
+          name="ProfileDetailsScreen"
           component={ProfileDetailsScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="tabs/profile/EditInfoScreen"
+          name="EditInfoScreen"
           component={EditInfoScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="tabs/profile/HandleLikeScreen"
+          name="HandleLikeScreen"
           component={HandleLikeScreen}
           options={{ headerShown: false }}
         />
@@ -165,7 +158,11 @@ const StackNavigator = () => {
           component={EditPhotosScreen}
           options={{ headerShown: true, title: "Edit Photos" }}
         />
-        <Stack.Screen name="ChatRoom" component={ChatRoom} />
+        <Stack.Screen
+          name="ChatRoom"
+          component={ChatRoom}
+          options={{ headerShown: false, title: "Chat Room" }}
+        />
       </Stack.Navigator>
     );
   }

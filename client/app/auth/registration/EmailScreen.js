@@ -47,7 +47,7 @@ const EmailScreen = () => {
     }
     setError(""); // Clear error
     saveRegistrationProgress("Email", { email });
-    navigation.navigate("auth/registration/PasswordScreen");
+    navigation.navigate("PasswordScreen");
   };
 
   return (

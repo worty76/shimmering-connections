@@ -41,7 +41,7 @@ const HomeTownScreen = () => {
       province: selectedProvince,
       district: selectedDistrict,
     });
-    navigation.navigate("auth/registration/PhotoScreen");
+    navigation.navigate("PhotoScreen");
   };
 
   const districts =

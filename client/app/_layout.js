@@ -13,25 +13,21 @@ import StackNavigator from "./StackNavigator";
 import { AuthProvider } from "../context/AuthContext";
 import { ModalPortal } from "react-native-modals";
 
-// Prevent the splash screen from auto-hiding before the app is ready
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
-  // Load custom fonts
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  // Hide the splash screen once the fonts are loaded
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
 
-  // Show a fallback UI while fonts are loading
   if (!fontsLoaded) {
     return null;
   }

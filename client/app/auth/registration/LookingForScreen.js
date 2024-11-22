@@ -36,13 +36,12 @@ const LookingFor = () => {
       return;
     }
     saveRegistrationProgress("LookingFor", { lookingFor });
-    navigation.navigate("auth/registration/HomeTownScreen");
+    navigation.navigate("HomeTownScreen");
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contentContainer}>
-        {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.iconContainer}>
             <AntDesign name="hearto" size={22} color="black" />
@@ -55,13 +54,11 @@ const LookingFor = () => {
           />
         </View>
 
-        {/* Title and Description */}
         <Text style={styles.titleText}>What's your dating intention?</Text>
         <Text style={styles.descriptionText}>
           Select the option that best describes your dating goals.
         </Text>
 
-        {/* Options */}
         <View style={styles.optionsContainer}>
           {datingOptions.map((option) => (
             <Option
@@ -73,13 +70,11 @@ const LookingFor = () => {
           ))}
         </View>
 
-        {/* Visibility */}
         <View style={styles.visibilityContainer}>
           <AntDesign name="checksquare" size={26} color="#581845" />
           <Text style={styles.visibilityText}>Visible on profile</Text>
         </View>
 
-        {/* Next Button */}
         <TouchableOpacity
           onPress={handleNext}
           activeOpacity={0.8}
@@ -96,7 +91,6 @@ const LookingFor = () => {
   );
 };
 
-// Dating Options Data
 const datingOptions = [
   { label: "Life Partner", value: "life_partner" },
   { label: "Long-term relationship", value: "long_term" },
@@ -106,7 +100,6 @@ const datingOptions = [
   { label: "Figuring out my dating goals", value: "figuring_out_goals" },
 ];
 
-// Reusable Option Component
 const Option = ({ label, selected, onPress }) => (
   <Pressable onPress={onPress} style={styles.optionContainer}>
     <Text style={styles.optionText}>{label}</Text>

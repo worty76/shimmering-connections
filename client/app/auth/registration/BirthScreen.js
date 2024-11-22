@@ -103,7 +103,7 @@ const BirthScreen = () => {
     if (validateDate()) {
       const dateOfBirth = `${day}/${month}/${year}`;
       saveRegistrationProgress("Birth", { dateOfBirth });
-      navigation.navigate("auth/registration/GenderScreen");
+      navigation.navigate("GenderScreen");
     }
   };
 

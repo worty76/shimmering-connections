@@ -24,7 +24,6 @@ import api from "../../constants/api";
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const route = useRoute();
-  console.log(route);
   const [password, setPassword] = useState("");
   const navigation = useNavigation();
   const [option, setOption] = useState("Create account");
@@ -33,9 +32,7 @@ const LoginScreen = () => {
   console.log(token);
 
   useEffect(() => {
-    // Check if the token is set and not in loading state
     if (token) {
-      // Navigate to the main screen
       navigation.navigate("MainStack", { screen: "Main" });
     }
   }, [token, navigation]);
@@ -63,7 +60,7 @@ const LoginScreen = () => {
   const createAccount = () => {
     setOption("Create account");
 
-    navigation.navigate("auth/registration/BasicInfo");
+    navigation.navigate("BasicInfo");
   };
 
   return (

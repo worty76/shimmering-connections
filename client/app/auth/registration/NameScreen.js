@@ -34,7 +34,7 @@ const NameScreen = () => {
   const handleNext = () => {
     if (firstName.trim() !== "" && lastName.trim() !== "") {
       saveRegistrationProgress("Name", { firstName, lastName });
-      navigation.navigate("auth/registration/EmailScreen");
+      navigation.navigate("EmailScreen");
     } else {
       Alert.alert(
         "Validation Error",

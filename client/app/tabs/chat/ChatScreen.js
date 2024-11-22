@@ -55,6 +55,11 @@ const ChatScreen = () => {
             {matches?.map((item, index) => (
               <UserChat key={index} userId={userId} item={item} />
             ))}
+            {matches.length === 0 && (
+              <View>
+                <Text>There's no matches</Text>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>

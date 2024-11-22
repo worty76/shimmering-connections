@@ -79,7 +79,7 @@ const ShowPromptScreen = () => {
 
   const proceedToNextScreen = () => {
     if (prompts.length > 0) {
-      navigation.navigate("auth/registration/PromptScreen", { prompts });
+      navigation.navigate("PromptScreen", { prompts });
     } else {
       Alert.alert("Error", "Please select at least one prompt to proceed.");
     }
@@ -88,14 +88,12 @@ const ShowPromptScreen = () => {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.viewAllText}>View all</Text>
           <Text style={styles.titleText}>Prompts</Text>
           <Entypo name="cross" size={22} color="black" />
         </View>
 
-        {/* Categories */}
         <View style={styles.categoryContainer}>
           {promptCategories.map((item) => (
             <Pressable
@@ -118,7 +116,6 @@ const ShowPromptScreen = () => {
           ))}
         </View>
 
-        {/* Prompts */}
         <ScrollView style={styles.promptList}>
           {promptCategories.map((category) =>
             category.name === option
@@ -137,7 +134,6 @@ const ShowPromptScreen = () => {
           )}
         </ScrollView>
 
-        {/* Selected Prompts */}
         <View style={styles.selectedPromptsContainer}>
           <Text style={styles.selectedPromptsTitle}>Selected Prompts:</Text>
           {prompts.map((item, index) => (
@@ -152,13 +148,11 @@ const ShowPromptScreen = () => {
           ))}
         </View>
 
-        {/* Proceed Button */}
         <Pressable style={styles.proceedButton} onPress={proceedToNextScreen}>
           <Text style={styles.proceedButtonText}>Proceed</Text>
         </Pressable>
       </SafeAreaView>
 
-      {/* Modal */}
       <BottomModal
         visible={isModalVisible}
         onTouchOutside={() => setModalVisible(false)}

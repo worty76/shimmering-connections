@@ -141,7 +141,7 @@ const LikesScreen = () => {
             {likes.length > 0 && (
               <Pressable
                 onPress={() =>
-                  navigation.navigate("tabs/profile/HandleLikeScreen", {
+                  navigation.navigate("HandleLikeScreen", {
                     firstName: likes[0].userId?.firstName,
                     lastName: likes[0].userId?.lastName,
                     age: likes[0].userId?.age,
@@ -168,6 +168,12 @@ const LikesScreen = () => {
                 />
               </Pressable>
             )}
+            {likes.length === 0 && (
+              <View>
+                <Text>There's no likes</Text>
+              </View>
+            )}
+
             <Text style={styles.upNextTitle}>Up Next</Text>
             <View style={styles.upNextContainer}>
               {likes.slice(1).map((like, index) => (

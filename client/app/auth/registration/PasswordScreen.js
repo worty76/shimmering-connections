@@ -40,7 +40,7 @@ const Password = () => {
     // Clear errors and save progress
     setError("");
     saveRegistrationProgress("Password", { password });
-    navigation.navigate("auth/registration/BirthScreen");
+    navigation.navigate("BirthScreen");
   };
 
   return (

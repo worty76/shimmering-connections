@@ -61,7 +61,7 @@ const PromptScreen = () => {
   const handleNext = () => {
     if (route.params && route.params.prompts) {
       saveRegistrationProgress("Prompts", { prompts: route.params.prompts });
-      navigation.navigate("auth/registration/PreFinalScreen");
+      navigation.navigate("PreFinalScreen");
     } else {
       Alert.alert("Incomplete", "Please select at least one prompt.");
     }
@@ -69,7 +69,6 @@ const PromptScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.iconContainer}>
           <AntDesign name="eye" size={22} color="black" />
@@ -82,18 +81,14 @@ const PromptScreen = () => {
         />
       </View>
 
-      {/* Title */}
       <Text style={styles.titleText}>Write your profile answers</Text>
 
-      {/* Prompts */}
       <View style={styles.promptContainer}>
         {route?.params?.prompts
           ? route.params.prompts.map((item, index) => (
               <Pressable
                 key={index}
-                onPress={() =>
-                  navigation.navigate("auth/registration/ShowPromptScreen")
-                }
+                onPress={() => navigation.navigate("ShowPromptScreen")}
                 style={styles.promptBox}
               >
                 <Text style={styles.promptQuestion}>{item.question}</Text>
@@ -103,9 +98,7 @@ const PromptScreen = () => {
           : Array.from({ length: 3 }).map((_, index) => (
               <Pressable
                 key={index}
-                onPress={() =>
-                  navigation.navigate("auth/registration/ShowPromptScreen")
-                }
+                onPress={() => navigation.navigate("ShowPromptScreen")}
                 style={styles.placeholderBox}
               >
                 <Text style={styles.placeholderText}>Select a Prompt</Text>
@@ -116,7 +109,6 @@ const PromptScreen = () => {
             ))}
       </View>
 
-      {/* Next Button */}
       <TouchableOpacity
         onPress={handleNext}
         activeOpacity={0.8}

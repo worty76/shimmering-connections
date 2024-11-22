@@ -57,7 +57,7 @@ const BasicInfo = () => {
       </View>
 
       <Pressable
-        onPress={() => navigation.navigate("auth/registration/NameScreen")}
+        onPress={() => navigation.navigate("NameScreen")}
         style={{ backgroundColor: "#900C3F", padding: 15, marginTop: "auto" }}
       >
         <Text

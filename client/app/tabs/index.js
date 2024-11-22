@@ -24,7 +24,6 @@ export default function BottomTabs() {
         headerShown: false,
       }}
     >
-      {/* Explore Tab - Showing Users to Like */}
       <Tab.Screen
         name="Explore"
         component={Explore}
@@ -39,7 +38,6 @@ export default function BottomTabs() {
         }}
       />
 
-      {/* Bio Tab - User Profile */}
       <Tab.Screen
         name="Bio"
         component={BioScreen}
@@ -54,7 +52,6 @@ export default function BottomTabs() {
         }}
       />
 
-      {/* Profile Tab - People Who Liked Me */}
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -69,7 +66,6 @@ export default function BottomTabs() {
         }}
       />
 
-      {/* Chat Tab - Messaging */}
       <Tab.Screen
         name="Chat"
         component={ChatScreen}

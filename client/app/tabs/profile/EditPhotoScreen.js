@@ -7,15 +7,18 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 import { EvilIcons } from "@expo/vector-icons";
 import axios from "axios";
 import api from "../../../constants/api";
 
 const EditPhotosScreen = ({ route, navigation }) => {
   const { currentImages, userId } = route.params;
+  const [removedImages, setRemovedImages] = useState([]);
   const [imageUrls, setImageUrls] = useState(
     currentImages.length < 6
       ? [...currentImages, ...new Array(6 - currentImages.length).fill("")]
@@ -30,7 +33,7 @@ const EditPhotosScreen = ({ route, navigation }) => {
   const handleAddImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      showAlert(
+      Alert.alert(
         "Permission Denied",
         "We need camera roll permissions to proceed."
       );
@@ -40,27 +43,52 @@ const EditPhotosScreen = ({ route, navigation }) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
-      base64: true,
+      base64: false,
     });
 
     if (!result.canceled) {
       const pickedImage = result.assets[0];
-      const base64Image = pickedImage.uri;
-      const index = imageUrls.findIndex((url) => url === "");
-      if (index !== -1) {
-        const updatedUrls = [...imageUrls];
-        updatedUrls[index] = base64Image;
-        setImageUrls(updatedUrls);
-      } else {
-        showAlert("Limit Reached", "You can only upload up to 6 images.");
+      const fileUri = pickedImage.uri;
+
+      try {
+        let base64Image;
+
+        if (Platform.OS === "android" && fileUri.startsWith("file://")) {
+          // Convert Android file URI to base64
+          const base64 = await FileSystem.readAsStringAsync(fileUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          base64Image = `data:image/jpeg;base64,${base64}`;
+        } else {
+          // For iOS and Web
+          base64Image = pickedImage.uri;
+        }
+
+        const index = imageUrls.findIndex((url) => url === "");
+        if (index !== -1) {
+          const updatedUrls = [...imageUrls];
+          updatedUrls[index] = base64Image;
+          setImageUrls(updatedUrls);
+        } else {
+          Alert.alert("Limit Reached", "You can only upload up to 6 images.");
+        }
+      } catch (error) {
+        console.error("Error processing image:", error);
+        showAlert("Error", "Failed to process the selected image.");
       }
     }
   };
 
   const handleRemoveImage = (index) => {
     const updatedUrls = [...imageUrls];
-    updatedUrls[index] = "";
+    const removedImage = updatedUrls[index];
+    updatedUrls[index] = ""; // Clear the image locally
     setImageUrls(updatedUrls);
+
+    if (removedImage) {
+      setRemovedImages((prev) => [...prev, removedImage]); // Track removed images
+    }
+    console.log("Removed image:", removedImage);
   };
 
   const saveImages = async () => {
@@ -129,7 +157,7 @@ const EditPhotosScreen = ({ route, navigation }) => {
                 </>
               ) : (
                 <TouchableOpacity
-                  onLongPress={() => handleRemoveImage(index)}
+                  onPress={handleAddImage}
                   style={[styles.photoContainer, styles.emptyPhotoContainer]}
                 >
                   <EvilIcons name="image" size={30} color="#aaa" />
@@ -188,7 +216,7 @@ const styles = StyleSheet.create({
     width: "30%",
     aspectRatio: 1,
     borderRadius: 10,
-    overflow: "hidden", // Ensures the icon is clipped within the photo bounds
+    overflow: "hidden",
   },
   photo: {
     width: "100%",
@@ -200,7 +228,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 5,
     right: 5,
-    backgroundColor: "rgba(0, 0, 0, 0.6)", // Dark translucent background
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     borderRadius: 15,
     width: 30,
     height: 30,
