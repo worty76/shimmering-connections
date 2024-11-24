@@ -163,6 +163,7 @@ const styles = StyleSheet.create({
     bottom: 24,
     left: 24,
     right: 24,
+    paddingBottom: 50,
   },
   name: {
     color: "white",

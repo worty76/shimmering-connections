@@ -141,17 +141,17 @@ const StackNavigator = () => {
         <Stack.Screen
           name="ProfileDetailsScreen"
           component={ProfileDetailsScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, title: "User's details information" }}
         />
         <Stack.Screen
           name="EditInfoScreen"
           component={EditInfoScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, title: "Edit your information" }}
         />
         <Stack.Screen
           name="HandleLikeScreen"
           component={HandleLikeScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, title: "People liked you" }}
         />
         <Stack.Screen
           name="EditPhotosScreen"

@@ -20,6 +20,7 @@ import AsyncStorage, {
 import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../constants/api";
+import group from "../../assets/images/Group.png";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -29,19 +30,16 @@ const LoginScreen = () => {
   const [option, setOption] = useState("Create account");
   const { token, isLoading, setToken } = useContext(AuthContext);
 
-  console.log(token);
-
   useEffect(() => {
     if (token) {
       navigation.navigate("MainStack", { screen: "Main" });
     }
   }, [token, navigation]);
+
   const signInUser = async () => {
     setOption("Sign In");
 
     try {
-      console.log(email);
-      console.log(password);
       const user = {
         email: email,
         password: password,
@@ -57,86 +55,21 @@ const LoginScreen = () => {
       console.log("error", error);
     }
   };
+
   const createAccount = () => {
     setOption("Create account");
-
     navigation.navigate("BasicInfo");
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}
-    >
-      <View
-        style={{
-          height: 200,
-          backgroundColor: "#581845",
-          width: "100%",
-          borderBottomLeftRadius: 100,
-          borderBottomRightRadius: 100,
-        }}
-      >
-        <View
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: 25,
-          }}
-        >
-          <Image
-            style={{ width: 150, height: 80, resizeMode: "contain" }}
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/4310/4310217.png",
-            }}
-          />
-        </View>
-        <Text
-          style={{
-            marginTop: 20,
-            textAlign: "center",
-            fontSize: 23,
-            fontFamily: "GeezaPro-Bold",
-            color: "white",
-          }}
-        >
-          Shimmering Connections
-        </Text>
-      </View>
-
-      <KeyboardAvoidingView>
-        <View style={{ alignItems: "center" }}></View>
-
-        <View
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: 20,
-          }}
-        >
-          <Image
-            style={{ width: 100, height: 80, resizeMode: "cover" }}
-            source={{
-              uri: "https://branditechture.agency/brand-logos/wp-content/uploads/wpdm-cache/Hinge-App-900x0.png",
-            }}
-          />
-        </View>
-
-        <View style={{ marginTop: 20 }}>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView behavior="padding" style={styles.keyboardView}>
+        <View style={styles.innerContainer}>
           {option == "Sign In" ? (
             <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 5,
-                  backgroundColor: "#581845",
-                  paddingVertical: 5,
-                  borderRadius: 5,
-                  marginTop: 30,
-                }}
-              >
+              <View style={styles.inputContainer}>
                 <MaterialIcons
-                  style={{ marginLeft: 8 }}
+                  style={styles.icon}
                   name="email"
                   size={24}
                   color="white"
@@ -146,104 +79,57 @@ const LoginScreen = () => {
                   onChangeText={(text) => setEmail(text)}
                   placeholder="Enter your email"
                   placeholderTextColor={"white"}
-                  style={{
-                    color: "white",
-                    marginVertical: 10,
-                    width: 300,
-                    // fontSize: password ? 17 : 17,
-                  }}
+                  style={styles.input}
                 />
               </View>
 
-              <View style={{}}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 5,
-                    backgroundColor: "#581845",
-                    paddingVertical: 5,
-                    borderRadius: 5,
-                    marginTop: 30,
-                  }}
-                >
-                  <AntDesign
-                    style={{ marginLeft: 8 }}
-                    name="lock1"
-                    size={24}
-                    color="white"
-                  />
-                  <TextInput
-                    value={password}
-                    onChangeText={(text) => setPassword(text)}
-                    secureTextEntry={true}
-                    placeholder="Enter your password"
-                    style={{
-                      color: "white",
-                      marginVertical: 10,
-                      width: 300,
-                      //   fontSize: password ? 17 : 17,
-                    }}
-                    placeholderTextColor="white"
-                  />
-                </View>
+              <View style={styles.inputContainer}>
+                <AntDesign
+                  style={styles.icon}
+                  name="lock1"
+                  size={24}
+                  color="white"
+                />
+                <TextInput
+                  value={password}
+                  onChangeText={(text) => setPassword(text)}
+                  secureTextEntry={true}
+                  placeholder="Enter your password"
+                  placeholderTextColor="white"
+                  style={styles.input}
+                />
               </View>
 
-              <View
-                style={{
-                  marginTop: 12,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
+              <View style={styles.rememberContainer}>
                 <Text>Keep me logged in</Text>
-
-                <Text style={{ color: "#007FFF", fontWeight: "500" }}>
-                  Forgot Password
-                </Text>
+                <Text style={styles.forgotPasswordText}>Forgot Password</Text>
               </View>
             </>
           ) : (
-            <View>
-              <LottieView
-                source={require("../../assets/login.json")}
-                style={{
-                  height: 180,
-                  width: 300,
-                  alignSelf: "center",
-                  marginTop: 40,
-                  justifyContent: "center",
-                }}
-                autoPlay
-                loop={true}
-                speed={0.7}
-              />
-            </View>
+            <>
+              <View style={styles.imageContainer}>
+                <Image source={group} style={styles.image} />
+              </View>
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>
+                  Let's meeting people around you
+                </Text>
+              </View>
+            </>
           )}
-
-          <View style={{ marginTop: 40 }} />
 
           <Pressable
             onPress={createAccount}
-            style={{
-              width: 300,
-              backgroundColor:
-                option == "Create account" ? "#581845" : "transparent",
-              borderRadius: 6,
-              marginLeft: "auto",
-              marginRight: "auto",
-              padding: 15,
-              borderRadius: 30,
-            }}
+            style={[
+              styles.button,
+              option == "Create account" && styles.activeButton,
+            ]}
           >
             <Text
-              style={{
-                textAlign: "center",
-                color: option == "Create account" ? "white" : "black",
-                fontSize: 16,
-                fontWeight: "bold",
-              }}
+              style={[
+                styles.buttonText,
+                option == "Create account" && styles.activeButtonText,
+              ]}
             >
               Create account
             </Text>
@@ -251,24 +137,17 @@ const LoginScreen = () => {
 
           <Pressable
             onPress={signInUser}
-            style={{
-              width: 300,
-              backgroundColor: option == "Sign In" ? "#581845" : "transparent",
-              borderRadius: 6,
-              marginLeft: "auto",
-              marginRight: "auto",
-              padding: 15,
-              borderRadius: 30,
-              marginTop: 20,
-            }}
+            style={[
+              styles.button,
+              option == "Sign In" && styles.activeButton,
+              { marginTop: 20 },
+            ]}
           >
             <Text
-              style={{
-                textAlign: "center",
-                color: option == "Sign In" ? "white" : "black",
-                fontSize: 16,
-                fontWeight: "bold",
-              }}
+              style={[
+                styles.buttonText,
+                option == "Sign In" && styles.activeButtonText,
+              ]}
             >
               Sign In
             </Text>
@@ -281,4 +160,89 @@ const LoginScreen = () => {
 
 export default LoginScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  keyboardView: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  innerContainer: {
+    width: "90%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#581845",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    marginTop: 20,
+    width: "100%",
+  },
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    color: "white",
+    marginVertical: 10,
+    flex: 1,
+  },
+  rememberContainer: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  forgotPasswordText: {
+    color: "#007FFF",
+    fontWeight: "500",
+  },
+  imageContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 30,
+    width: "100%",
+  },
+  image: {
+    height: 250,
+    resizeMode: "contain",
+    width: "100%",
+  },
+  titleContainer: {
+    marginVertical: 20,
+    width: "100%",
+    alignItems: "center",
+  },
+  title: {
+    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  button: {
+    width: "100%",
+    padding: 15,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  activeButton: {
+    backgroundColor: "#581845",
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "black",
+  },
+  activeButtonText: {
+    color: "white",
+  },
+});

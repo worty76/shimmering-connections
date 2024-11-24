@@ -172,25 +172,29 @@ const Profile = () => {
                 placeholderTextColor="#888"
                 multiline
               />
-              {/* Save Button for Bio */}
-              <Pressable
-                onPress={saveBio}
-                style={styles.saveButton}
-                disabled={isSaving}
-              >
-                <Text style={styles.saveButtonText}>
-                  {isSaving ? "Saving..." : "Save Bio"}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={fetchSuggestions}
-                style={styles.suggestionsButton}
-                disabled={suggestionsLoading}
-              >
-                <Text style={styles.suggestionsButtonText}>
-                  {suggestionsLoading ? "Loading..." : "Generate bio"}
-                </Text>
-              </Pressable>
+              <View style={styles.buttonRow}>
+                <Pressable
+                  onPress={saveBio}
+                  style={[styles.saveButton, isSaving && styles.disabledButton]}
+                  disabled={isSaving}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {isSaving ? "Saving..." : "Save Bio"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={fetchSuggestions}
+                  style={[
+                    styles.suggestionsButton,
+                    suggestionsLoading && styles.disabledButton,
+                  ]}
+                  disabled={suggestionsLoading}
+                >
+                  <Text style={styles.suggestionsButtonText}>
+                    {suggestionsLoading ? "Loading..." : "Generate"}
+                  </Text>
+                </Pressable>
+              </View>
               <Pressable
                 onPress={() =>
                   navigation.navigate("EditInfoScreen", { userId })
@@ -242,6 +246,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: "#F9F9F9",
+    paddingBottom: 70, // Increased padding to prevent overlap with bottom tabs
   },
   container: {
     alignItems: "center",
@@ -260,18 +265,10 @@ const styles = StyleSheet.create({
   carouselImage: {
     width: "90%",
     height: "100%",
-    borderRadius: 10,
+    borderRadius: 15,
     resizeMode: "cover",
-    borderWidth: 0.5,
-    borderColor: "pink",
-  },
-  deleteIcon: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
   },
   noImagesText: {
     fontSize: 16,
@@ -282,8 +279,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#900C3F",
-    padding: 10,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 10,
   },
   addImageText: {
     color: "white",
@@ -295,7 +293,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   userName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
     color: "#333",
   },
@@ -306,20 +304,29 @@ const styles = StyleSheet.create({
   },
   bioInput: {
     backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 12,
+    padding: 15,
     color: "#333",
-    width: 300,
-    height: 100,
+    width: "90%",
+    height: 120,
     marginVertical: 10,
     textAlignVertical: "top",
   },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "90%",
+    marginVertical: 10,
+  },
   saveButton: {
     backgroundColor: "#008B8B",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginTop: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   saveButtonText: {
     color: "white",
@@ -327,11 +334,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   suggestionsButton: {
-    backgroundColor: "#008B8B",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginTop: 10,
+    backgroundColor: "#6A5ACD",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
   },
   suggestionsButtonText: {
     color: "white",
@@ -348,7 +354,7 @@ const styles = StyleSheet.create({
     width: "90%",
     backgroundColor: "white",
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 15,
     alignItems: "center",
   },
   modalTitle: {
@@ -368,9 +374,9 @@ const styles = StyleSheet.create({
   closeModalButton: {
     marginTop: 20,
     backgroundColor: "#900C3F",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
   },
   closeModalText: {
     color: "white",
@@ -379,9 +385,9 @@ const styles = StyleSheet.create({
   editButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#008B8B",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#FF6347",
+    padding: 12,
+    borderRadius: 8,
     marginTop: 15,
   },
   editText: {
@@ -393,9 +399,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#D9534F",
     paddingVertical: 15,
     paddingHorizontal: 50,
-    borderRadius: 5,
+    borderRadius: 10,
     alignSelf: "center",
-    marginVertical: 20,
+    marginVertical: 30,
   },
   logoutText: {
     color: "white",
