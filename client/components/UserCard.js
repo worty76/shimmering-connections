@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   userInfoContainer: {
     position: "absolute",
-    bottom: 100,
+    bottom: 150,
     left: 20,
     right: 20,
     zIndex: 2,
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     position: "absolute",
-    bottom: 10,
+    bottom: 100,
     left: 0,
     right: 0,
   },

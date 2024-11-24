@@ -11,6 +11,7 @@ import {
   Feather,
   Ionicons,
 } from "@expo/vector-icons";
+import { StyleSheet } from "react-native";
 
 export default function BottomTabs() {
   const Tab = createBottomTabNavigator();
@@ -18,67 +19,73 @@ export default function BottomTabs() {
 
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         tabBarShowLabel: false,
-        tabBarStyle: { backgroundColor: "#101010", borderTopWidth: 0 },
+        tabBarStyle: {
+          position: "absolute",
+          bottom: 10,
+          left: 20,
+          right: 20,
+          elevation: 5,
+          backgroundColor: "#ffffff",
+          borderRadius: 20,
+          height: 50, // Reduced height
+          borderTopWidth: 0, // Remove the default top border
+          paddingBottom: 5, // Adjust padding to reduce empty space
+          paddingTop: 5, // Add slight padding on top for balance
+          ...styles.shadow,
+        },
         headerShown: false,
-      }}
+        tabBarIcon: ({ focused }) => {
+          let iconName;
+          let iconSize = focused ? 28 : 24;
+          let iconColor = focused ? "#e32f45" : "#748c94";
+
+          if (route.name === "Explore") {
+            iconName = focused ? "heart-circle" : "heart-circle-outline";
+            return (
+              <Ionicons name={iconName} size={iconSize} color={iconColor} />
+            );
+          } else if (route.name === "Bio") {
+            iconName = "user";
+            return (
+              <FontAwesome name={iconName} size={iconSize} color={iconColor} />
+            );
+          } else if (route.name === "Profile") {
+            iconName = "heart-multiple-outline";
+            return (
+              <MaterialCommunityIcons
+                name={iconName}
+                size={iconSize}
+                color={iconColor}
+              />
+            );
+          } else if (route.name === "Chat") {
+            iconName = "message-circle";
+            return (
+              <Feather name={iconName} size={iconSize} color={iconColor} />
+            );
+          }
+        },
+      })}
     >
-      <Tab.Screen
-        name="Explore"
-        component={Explore}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <Ionicons
-              name="heart-circle-outline"
-              size={focused ? 35 : 30}
-              color={focused ? "white" : "#989898"}
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Bio"
-        component={BioScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <FontAwesome
-              name="user"
-              size={focused ? 35 : 30}
-              color={focused ? "white" : "#989898"}
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <MaterialCommunityIcons
-              name="heart-multiple-outline"
-              size={focused ? 35 : 30}
-              color={focused ? "white" : "#989898"}
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Chat"
-        component={ChatScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <Feather
-              name="message-circle"
-              size={focused ? 35 : 30}
-              color={focused ? "white" : "#989898"}
-            />
-          ),
-        }}
-      />
+      <Tab.Screen name="Explore" component={Explore} />
+      <Tab.Screen name="Bio" component={BioScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Chat" component={ChatScreen} />
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  shadow: {
+    shadowColor: "#7F5DF0",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.5,
+    elevation: 5,
+  },
+});
