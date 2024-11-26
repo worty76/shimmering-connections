@@ -82,17 +82,17 @@ const EditPhotosScreen = ({ route, navigation }) => {
   const handleRemoveImage = (index) => {
     const updatedUrls = [...imageUrls];
     const removedImage = updatedUrls[index];
-    updatedUrls[index] = ""; // Clear the image locally
+    updatedUrls[index] = "";
     setImageUrls(updatedUrls);
 
     if (removedImage) {
-      setRemovedImages((prev) => [...prev, removedImage]); // Track removed images
+      setRemovedImages((prev) => [...prev, removedImage]);
     }
     console.log("Removed image:", removedImage);
   };
 
   const saveImages = async () => {
-    const filteredImages = imageUrls.filter((url) => url !== ""); // Filter out empty slots
+    const filteredImages = imageUrls.filter((url) => url !== "");
     if (filteredImages.length < 1) {
       showAlert("Minimum Photos Required", "Please add at least one photo.");
       return;
@@ -102,12 +102,14 @@ const EditPhotosScreen = ({ route, navigation }) => {
     try {
       const formData = new FormData();
 
-      // Add current images (base64 or URLs) to FormData
       filteredImages.forEach((image) => {
         formData.append("imageUrls", image);
       });
 
+      formData.append("removedImages", JSON.stringify(removedImages));
       formData.append("userId", userId);
+
+      console.log(formData);
 
       const response = await axios.put(
         `${api.API_URL}/api/user/update-images`,
