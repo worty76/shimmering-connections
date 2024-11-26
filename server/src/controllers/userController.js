@@ -363,15 +363,16 @@ const updateBio = async (req, res) => {
 const updateImages = async (req, res) => {
   try {
     const { fields, files } = await doSomethingWithNodeRequest(req);
-    const { userId, imageUrls, removedImages } = fields;
-    console.log(imageUrls);
-    console.log(removedImages);
+    let { userId, imageUrls, removedImages } = fields;
+
+    console.log("Raw imageUrls:", imageUrls);
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
     }
 
     let parsedImageUrls = [];
+
     if (typeof imageUrls === "string") {
       try {
         parsedImageUrls = JSON.parse(imageUrls);
@@ -380,7 +381,11 @@ const updateImages = async (req, res) => {
       }
     } else if (Array.isArray(imageUrls)) {
       parsedImageUrls = imageUrls;
+    } else {
+      return res.status(400).json({ message: "Invalid imageUrls format." });
     }
+
+    console.log("Parsed imageUrls:", parsedImageUrls);
 
     const uploadedImageUrls = [];
     const imageFiles = parsedImageUrls.filter((url) => url !== "") || [];
