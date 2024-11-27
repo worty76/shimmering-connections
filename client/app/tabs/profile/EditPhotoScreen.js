@@ -125,7 +125,7 @@ const EditPhotosScreen = ({ route, navigation }) => {
         const { updatedImages } = response.data;
 
         setImageUrls([
-          ...updatedImages,
+          updatedImages,
           ...new Array(6 - updatedImages.length).fill(""),
         ]);
         showAlert("Success", "Images updated successfully!");
@@ -144,6 +144,7 @@ const EditPhotosScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={{ margin: 20 }}>
         <Text style={styles.title}>Edit Your Photos</Text>
+
         <View style={styles.photoGrid}>
           {imageUrls.map((url, index) => (
             <View key={index} style={styles.photoWrapper}>
@@ -168,8 +169,9 @@ const EditPhotosScreen = ({ route, navigation }) => {
             </View>
           ))}
         </View>
+
         <TouchableOpacity style={styles.addButton} onPress={handleAddImage}>
-          <Text style={styles.addButtonText}>Add Photos</Text>
+          <Text style={styles.addButtonText}>Add Photo</Text>
         </TouchableOpacity>
 
         {isLoading ? (
@@ -194,14 +196,15 @@ const EditPhotosScreen = ({ route, navigation }) => {
 
 export default EditPhotosScreen;
 
+// Update the styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F4F4F4",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 26,
+    fontWeight: "600",
     textAlign: "center",
     marginBottom: 20,
     color: "#333",
@@ -210,20 +213,22 @@ const styles = StyleSheet.create({
     marginTop: 20,
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: 15,
     justifyContent: "space-between",
   },
   photoWrapper: {
     position: "relative",
     width: "30%",
     aspectRatio: 1,
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: "hidden",
+    backgroundColor: "#f0f0f0",
+    marginBottom: 15,
   },
   photo: {
     width: "100%",
     height: "100%",
-    borderRadius: 10,
+    borderRadius: 12,
     resizeMode: "cover",
   },
   removeIconWrapper: {
@@ -231,26 +236,29 @@ const styles = StyleSheet.create({
     top: 5,
     right: 5,
     backgroundColor: "rgba(0, 0, 0, 0.6)",
-    borderRadius: 15,
+    borderRadius: 18,
     width: 30,
     height: 30,
     justifyContent: "center",
     alignItems: "center",
   },
   emptyPhotoContainer: {
-    borderWidth: 2,
-    borderColor: "#ddd",
-    borderStyle: "dashed",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#E0E0E0",
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#ddd",
+    width: "100%",
+    height: "100%",
   },
   addButton: {
     backgroundColor: "#008B8B",
-    paddingVertical: 10,
-    borderRadius: 5,
+    paddingVertical: 12,
+    borderRadius: 8,
     marginTop: 20,
     alignItems: "center",
+    marginBottom: 20,
   },
   addButtonText: {
     color: "#fff",
@@ -260,7 +268,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: "#008B8B",
     paddingVertical: 15,
-    borderRadius: 10,
+    borderRadius: 8,
     alignItems: "center",
     marginTop: 30,
   },
@@ -271,5 +279,10 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 20,
+  },
+  imageIcon: {
+    flex: 1, // Ensures the icon expands to fill the container's height
+    justifyContent: "center", // Centers the icon vertically
+    alignItems: "center", // Centers the icon horizontally
   },
 });

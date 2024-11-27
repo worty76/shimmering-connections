@@ -9,7 +9,7 @@ import {
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { jwtDecode } from "jwt-decode"; // Fix import capitalization
+import { jwtDecode } from "jwt-decode";
 import { useFocusEffect } from "@react-navigation/native";
 import constants from "../../../constants/api";
 import UserChat from "../../../components/UserChat";
@@ -19,7 +19,6 @@ const ChatScreen = () => {
   const [userId, setUserId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch logged-in user ID
   useEffect(() => {
     const fetchUser = async () => {
       const token = await AsyncStorage.getItem("token");
@@ -29,7 +28,6 @@ const ChatScreen = () => {
     fetchUser();
   }, []);
 
-  // Fetch matches
   const fetchMatches = async () => {
     setIsLoading(true);
     try {
@@ -61,9 +59,12 @@ const ChatScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.chatList}>
-        <Text style={styles.sectionTitle}>Messages</Text>
+        <Text style={styles.sectionTitle}>Your Matches</Text>
         {isLoading ? (
-          <ActivityIndicator size="large" color="#FF6E6C" />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#FF6E6C" />
+            <Text style={styles.loadingText}>Loading your matches...</Text>
+          </View>
         ) : matches.length > 0 ? (
           <FlatList
             data={matches}
@@ -71,7 +72,9 @@ const ChatScreen = () => {
             renderItem={({ item }) => <UserChat item={item} userId={userId} />}
           />
         ) : (
-          <Text style={styles.emptyStateText}>No messages yet!</Text>
+          <Text style={styles.emptyStateText}>
+            You don't have any matches yet!
+          </Text>
         )}
       </View>
     </SafeAreaView>
@@ -83,23 +86,33 @@ export default ChatScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FAF9F6",
+    backgroundColor: "#F9F9F9",
   },
   chatList: {
     flex: 1,
     marginTop: 20,
-    paddingHorizontal: 12,
+    paddingHorizontal: 20,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "500",
+    fontSize: 22,
+    fontWeight: "600",
     color: "#333",
-    marginBottom: 15,
+    marginBottom: 20,
+  },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 50,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#FF6E6C",
   },
   emptyStateText: {
-    fontSize: 16,
+    fontSize: 18,
     textAlign: "center",
     color: "#aaa",
-    marginTop: 30,
+    marginTop: 50,
   },
 });
