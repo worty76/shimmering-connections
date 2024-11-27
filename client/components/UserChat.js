@@ -27,7 +27,7 @@ const UserChat = ({ item, userId }) => {
       <View style={styles.textContainer}>
         <Text style={styles.userName}>{item?.firstName}</Text>
         <Text style={styles.lastMessage}>
-          {`Start Chat with ${item?.firstName}`}
+          {`Start a conversation with ${item?.firstName}`}
         </Text>
       </View>
     </Pressable>
@@ -41,36 +41,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 15,
-    marginHorizontal: 10,
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    marginHorizontal: 15,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3, // For Android shadow
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
+    width: 65,
+    height: 65,
+    borderRadius: 35,
+    borderWidth: 3,
     borderColor: "#FF6E6C",
   },
   textContainer: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 15,
     justifyContent: "center",
   },
   userName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#333",
   },
   lastMessage: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#777",
-    marginTop: 4,
+    marginTop: 6,
   },
 });
