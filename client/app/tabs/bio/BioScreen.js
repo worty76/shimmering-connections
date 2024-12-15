@@ -12,7 +12,7 @@ import {
   FlatList,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
-import { Entypo, AntDesign } from "@expo/vector-icons";
+import { Entypo, AntDesign, MaterialIcons } from "@expo/vector-icons";
 import Carousel from "react-native-reanimated-carousel";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -29,11 +29,9 @@ const Profile = () => {
   const [user, setUser] = useState({});
   const [profileImages, setProfileImages] = useState([]);
   const [bio, setBio] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
@@ -70,23 +68,6 @@ const Profile = () => {
     }
   };
 
-  const fetchSuggestions = async () => {
-    setSuggestionsLoading(true);
-    try {
-      const response = await axios.get(
-        `${api.API_URL}/api/user/generate-bio/${userId}`
-      );
-      const generatedBio = response?.data?.bio || "No bio generated.";
-
-      setBio(generatedBio);
-    } catch (error) {
-      console.error("Error fetching suggestions:", error);
-      alert("Failed to fetch a bio suggestion.");
-    } finally {
-      setSuggestionsLoading(false);
-    }
-  };
-
   const saveBio = async () => {
     setIsSaving(true);
     try {
@@ -111,11 +92,22 @@ const Profile = () => {
     }
   };
 
-  const renderSuggestionItem = ({ item }) => (
-    <View style={styles.suggestionItem}>
-      <Text style={styles.suggestionText}>{item}</Text>
-    </View>
-  );
+  const generateBio = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await axios.get(
+        `${api.API_URL}/api/user/generate-bio/${userId}`
+      );
+      const generatedBio =
+        response?.data?.bio || "Generated bio not available.";
+      setBio(generatedBio);
+    } catch (error) {
+      console.error("Error generating bio:", error);
+      alert("Failed to generate a bio.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const pickImage = async () => {
     navigation.navigate("EditPhotosScreen", {
@@ -129,6 +121,10 @@ const Profile = () => {
     navigation.reset({ index: 0, routes: [{ name: "auth/login" }] });
   };
 
+  const goToEditInfo = () => {
+    navigation.navigate("EditInfoScreen", { userId });
+  };
+
   const renderItem = ({ item }) => (
     <View style={styles.carouselItem}>
       <Image source={{ uri: item }} style={styles.carouselImage} />
@@ -137,105 +133,77 @@ const Profile = () => {
 
   return (
     <View style={styles.mainContainer}>
+      <Pressable style={styles.editIconButton} onPress={goToEditInfo}>
+        <MaterialIcons name="edit" size={28} color="#3182CE" />
+      </Pressable>
       <ScrollView contentContainerStyle={styles.container}>
         {loading ? (
-          <ActivityIndicator size="large" color="#900C3F" />
+          <ActivityIndicator size="large" color="#5A67D8" />
         ) : (
           <>
-            <View style={styles.imageSlider}>
-              {profileImages.length > 0 ? (
-                <Carousel
-                  width={screenWidth * 0.9}
-                  height={carouselHeight}
-                  data={profileImages.filter((img) => img !== "")}
-                  renderItem={renderItem}
-                  keyExtractor={(item, index) => index.toString()}
+            <View style={styles.profileHeader}>
+              <Pressable
+                onPress={pickImage}
+                style={styles.profileImageContainer}
+              >
+                <Image
+                  source={{
+                    uri: profileImages[0] || "https://via.placeholder.com/150",
+                  }}
+                  style={styles.profileImage}
                 />
-              ) : (
-                <Text style={styles.noImagesText}>No images available</Text>
-              )}
-              <Pressable onPress={pickImage} style={styles.addImageButton}>
-                <Entypo name="camera" size={24} color="white" />
-                <Text style={styles.addImageText}>Add Photo</Text>
+                <View style={styles.cameraIconContainer}>
+                  <Entypo name="camera" size={18} color="white" />
+                </View>
               </Pressable>
-            </View>
-            <View style={styles.userInfo}>
               <Text style={styles.userName}>
                 {user.firstName} {user.lastName}
               </Text>
               <Text style={styles.userEmail}>{user.email}</Text>
-              <TextInput
-                style={styles.bioInput}
-                value={bio}
-                onChangeText={(text) => setBio(text)}
-                placeholder="Enter your bio..."
-                placeholderTextColor="#888"
-                multiline
-              />
-              <View style={styles.buttonRow}>
+            </View>
+
+            <View style={styles.bioSection}>
+              <Text style={styles.bioLabel}>Bio:</Text>
+              <View style={styles.bioInputContainer}>
+                <TextInput
+                  style={styles.bioInput}
+                  value={bio}
+                  onChangeText={(text) => setBio(text)}
+                  placeholder="Tell us about yourself..."
+                  placeholderTextColor="#888"
+                  multiline
+                />
                 <Pressable
-                  onPress={saveBio}
-                  style={[styles.saveButton, isSaving && styles.disabledButton]}
-                  disabled={isSaving}
+                  style={styles.generateIconButton}
+                  onPress={generateBio}
+                  disabled={isGenerating}
                 >
-                  <Text style={styles.saveButtonText}>
-                    {isSaving ? "Saving..." : "Save Bio"}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={fetchSuggestions}
-                  style={[
-                    styles.suggestionsButton,
-                    suggestionsLoading && styles.disabledButton,
-                  ]}
-                  disabled={suggestionsLoading}
-                >
-                  <Text style={styles.suggestionsButtonText}>
-                    {suggestionsLoading ? "Loading..." : "Generate"}
-                  </Text>
+                  <AntDesign
+                    name={isGenerating ? "loading1" : "sync"}
+                    size={20}
+                    color={isGenerating ? "#999" : "#5A67D8"}
+                  />
                 </Pressable>
               </View>
+            </View>
+
+            <View style={styles.buttonRow}>
               <Pressable
-                onPress={() =>
-                  navigation.navigate("EditInfoScreen", { userId })
-                }
-                style={styles.editButton}
+                onPress={saveBio}
+                style={[styles.actionButton, isSaving && styles.disabledButton]}
+                disabled={isSaving}
               >
-                <AntDesign name="edit" size={20} color="white" />
-                <Text style={styles.editText}>Edit Profile</Text>
+                <Text style={styles.actionButtonText}>
+                  {isSaving ? "Saving..." : "Save Bio"}
+                </Text>
+              </Pressable>
+              <Pressable onPress={handleLogout} style={styles.logoutButton}>
+                <Text style={styles.logoutButtonText}>Log Out</Text>
               </Pressable>
             </View>
           </>
         )}
       </ScrollView>
-
-      <Modal
-        visible={isModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setIsModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Suggestions</Text>
-            <FlatList
-              data={suggestions}
-              renderItem={renderSuggestionItem}
-              keyExtractor={(item, index) => index.toString()}
-            />
-            <Pressable
-              onPress={() => setIsModalVisible(false)}
-              style={styles.closeModalButton}
-            >
-              <Text style={styles.closeModalText}>Close</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-
-      <Pressable onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Log Out</Text>
-      </Pressable>
     </View>
   );
 };
@@ -245,165 +213,111 @@ export default Profile;
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: "#F9F9F9",
-    paddingBottom: 70, // Increased padding to prevent overlap with bottom tabs
+    backgroundColor: "#F9FAFB",
+    paddingBottom: 20,
   },
   container: {
     alignItems: "center",
     padding: 20,
   },
-  imageSlider: {
-    height: carouselHeight * 1.4,
+  profileHeader: {
     alignItems: "center",
+    marginBottom: 20,
   },
-  carouselItem: {
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    height: carouselHeight,
+  editIconButton: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: "#EDF2F7",
+    borderRadius: 20,
+    padding: 5,
   },
-  carouselImage: {
-    width: "90%",
-    height: "100%",
+  profileImageContainer: {
+    position: "relative",
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: "#5A67D8",
+  },
+  cameraIconContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#5A67D8",
     borderRadius: 15,
-    resizeMode: "cover",
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  noImagesText: {
-    fontSize: 16,
-    color: "gray",
-    textAlign: "center",
-  },
-  addImageButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#900C3F",
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  addImageText: {
-    color: "white",
-    fontSize: 16,
-    marginLeft: 5,
-  },
-  userInfo: {
-    alignItems: "center",
-    marginTop: 20,
+    padding: 5,
   },
   userName: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#333",
+    color: "#2D3748",
+    marginTop: 10,
   },
   userEmail: {
+    fontSize: 14,
+    color: "#4A5568",
+    marginTop: 5,
+  },
+  bioSection: {
+    width: "100%",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  bioLabel: {
     fontSize: 16,
-    color: "gray",
-    marginVertical: 5,
+    fontWeight: "600",
+    color: "#2D3748",
+    marginBottom: 5,
+  },
+  bioInputContainer: {
+    position: "relative",
   },
   bioInput: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 12,
+    backgroundColor: "#EDF2F7",
+    borderRadius: 10,
     padding: 15,
-    color: "#333",
-    width: "90%",
-    height: 120,
-    marginVertical: 10,
+    fontSize: 14,
+    color: "#2D3748",
     textAlignVertical: "top",
+    height: 100,
+    paddingRight: 40,
+  },
+  generateIconButton: {
+    position: "absolute",
+    right: 10,
+    top: 15,
   },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "90%",
-    marginVertical: 10,
+    width: "100%",
+    paddingHorizontal: 20,
   },
-  saveButton: {
-    backgroundColor: "#008B8B",
+  actionButton: {
+    backgroundColor: "#5A67D8",
     paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-    marginRight: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  actionButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   disabledButton: {
     opacity: 0.6,
   },
-  saveButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  suggestionsButton: {
-    backgroundColor: "#6A5ACD",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  suggestionsButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    width: "90%",
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 15,
-    alignItems: "center",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  suggestionItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
-  },
-  suggestionText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  closeModalButton: {
-    marginTop: 20,
-    backgroundColor: "#900C3F",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
-  },
-  closeModalText: {
-    color: "white",
-    fontSize: 16,
-  },
-  editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FF6347",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 15,
-  },
-  editText: {
-    color: "white",
-    fontSize: 16,
-    marginLeft: 5,
-  },
   logoutButton: {
-    backgroundColor: "#D9534F",
-    paddingVertical: 15,
-    paddingHorizontal: 50,
+    backgroundColor: "#E53E3E",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 10,
-    alignSelf: "center",
-    marginVertical: 30,
   },
-  logoutText: {
+  logoutButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
