@@ -177,10 +177,7 @@ const receivedLikes = async (req, res) => {
     const { userId } = req.params;
 
     const likes = await User.findById(userId)
-      .populate(
-        "receivedLikes.userId",
-        "firstName lastName age province district imageUrls prompts gender"
-      )
+      .populate("receivedLikes.userId")
       .select("receivedLikes");
 
     res.status(200).json({ receivedLikes: likes.receivedLikes });

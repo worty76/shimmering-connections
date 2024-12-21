@@ -2,20 +2,20 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
   Pressable,
   Image,
   SafeAreaView,
-  ActivityIndicator,
+  FlatList,
+  TouchableOpacity,
 } from "react-native";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import constants from "../../../constants/api";
+import { jwtDecode } from "jwt-decode";
 
 const LikesScreen = () => {
   const navigation = useNavigation();
@@ -24,180 +24,117 @@ const LikesScreen = () => {
   const [likes, setLikes] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchUserId = async () => {
-    const token = await AsyncStorage.getItem("token");
-    const decodedToken = jwtDecode(token);
-    setUserId(decodedToken.userId);
-  };
-
-  const fetchLikes = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `${constants.API_URL}/api/user/received-likes/${userId}`
-      );
-      setLikes(response.data.receivedLikes || []);
-    } catch (error) {
-      console.error("Error fetching received likes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchUserId = async () => {
+      const token = await AsyncStorage.getItem("token");
+      const decodedToken = jwtDecode(token);
+      setUserId(decodedToken.userId);
+    };
     fetchUserId();
   }, []);
 
   useEffect(() => {
+    const fetchLikes = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `${constants.API_URL}/api/user/received-likes/${userId}`
+        );
+        setLikes(response.data.receivedLikes || []);
+      } catch (error) {
+        console.error("Error fetching received likes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     if (userId) fetchLikes();
   }, [userId]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (userId) fetchLikes();
-    }, [userId])
+  const renderCard = (like) => (
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate("HandleLikeScreen", {
+          firstName: like.userId?.firstName,
+          lastName: like.userId?.lastName,
+          imageUrls: like.userId?.imageUrls,
+          bio: like.userId?.bio,
+          age: like.userId?.age,
+          gender: like.userId?.gender,
+          province: like.userId?.province,
+          district: like.userId?.district,
+          prompts: like.userId?.prompts,
+        })
+      }
+      style={styles.card}
+    >
+      <Image
+        source={{ uri: like.userId?.imageUrls[0] }}
+        style={styles.cardImage}
+      />
+      <View style={styles.cardDetails}>
+        <Text style={styles.cardName}>
+          {like.userId?.firstName} {like.userId?.lastName}
+        </Text>
+        <Text style={styles.cardComment}>
+          {like.comment || "Liked your photo"}
+        </Text>
+        <View style={styles.cardActions}>
+          <Pressable style={styles.actionButton}>
+            <Ionicons name="heart" size={20} color="#FF6F61" />
+          </Pressable>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Likes You</Text>
-          <Pressable style={styles.boostButton}>
-            <SimpleLineIcons name="fire" size={24} color="white" />
-            <Text style={styles.boostText}>Boost</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Likes You</Text>
+        <Pressable style={styles.boostButton}>
+          <SimpleLineIcons name="fire" size={20} color="#fff" />
+          <Text style={styles.boostText}>Boost</Text>
+        </Pressable>
+      </View>
+      <View style={styles.filterContainer}>
+        {["Recent", "Your Type", "Last Active", "Nearby"].map((filter) => (
+          <Pressable
+            key={filter}
+            onPress={() => setOption(filter)}
+            style={[
+              styles.filterButton,
+              option === filter && styles.filterActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                option === filter && styles.filterActiveText,
+              ]}
+            >
+              {filter}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      {loading ? (
+        <Text style={styles.loadingText}>Loading...</Text>
+      ) : likes.length > 0 ? (
+        <FlatList
+          data={likes}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => renderCard(item)}
+          contentContainerStyle={styles.cardContainer}
+        />
+      ) : (
+        <View style={styles.emptyState}>
+          <Image style={styles.emptyImage} />
+          <Text style={styles.emptyText}>No one has liked you yet!</Text>
+          <Pressable style={styles.emptyButton}>
+            <Text style={styles.emptyButtonText}>Boost Your Profile</Text>
           </Pressable>
         </View>
-        <View style={styles.filters}>
-          <Pressable
-            onPress={() => setOption("Recent")}
-            style={[
-              styles.filterOption,
-              option === "Recent" && styles.activeOption,
-            ]}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                option === "Recent" && styles.activeText,
-              ]}
-            >
-              Recent
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setOption("Your Type")}
-            style={[
-              styles.filterOption,
-              option === "Your Type" && styles.activeOption,
-            ]}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                option === "Your Type" && styles.activeText,
-              ]}
-            >
-              Your Type
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setOption("Last Active")}
-            style={[
-              styles.filterOption,
-              option === "Last Active" && styles.activeOption,
-            ]}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                option === "Last Active" && styles.activeText,
-              ]}
-            >
-              Last Active
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setOption("Nearby")}
-            style={[
-              styles.filterOption,
-              option === "Nearby" && styles.activeOption,
-            ]}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                option === "Nearby" && styles.activeText,
-              ]}
-            >
-              Nearby
-            </Text>
-          </Pressable>
-        </View>
-        {loading ? (
-          <ActivityIndicator size="large" color="#008B8B" />
-        ) : (
-          <>
-            {likes.length > 0 && (
-              <Pressable
-                onPress={() =>
-                  navigation.navigate("HandleLikeScreen", {
-                    firstName: likes[0].userId?.firstName,
-                    lastName: likes[0].userId?.lastName,
-                    age: likes[0].userId?.age,
-                    province: likes[0].userId?.province,
-                    district: likes[0].userId?.district,
-                    image: likes[0].image,
-                    imageUrls: likes[0].userId?.imageUrls,
-                    prompts: likes[0].userId?.prompts,
-                    userId: userId,
-                    selectedUserId: likes[0].userId?._id,
-                  })
-                }
-                style={styles.mainLike}
-              >
-                <View style={styles.likeInfo}>
-                  <Text>Liked your photo</Text>
-                </View>
-                <Text style={styles.mainName}>
-                  {likes[0].userId?.firstName + " " + likes[0].userId?.lastName}
-                </Text>
-                <Image
-                  source={{ uri: likes[0].userId?.imageUrls[0] }}
-                  style={styles.mainImage}
-                />
-              </Pressable>
-            )}
-            {likes.length === 0 && (
-              <View>
-                <Text>There's no likes</Text>
-              </View>
-            )}
-
-            <Text style={styles.upNextTitle}>Up Next</Text>
-            <View style={styles.upNextContainer}>
-              {likes.slice(1).map((like, index) => (
-                <View key={index} style={styles.nextLike}>
-                  {like.comment ? (
-                    <View style={styles.commentBox}>
-                      <Text>{like.comment}</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.likeBox}>
-                      <Text>Liked your photo</Text>
-                    </View>
-                  )}
-                  <Text style={styles.nextName}>{like.userId?.firstName}</Text>
-                  <Image
-                    source={{ uri: like.userId?.imageUrls[0] }}
-                    style={styles.nextImage}
-                  />
-                </View>
-              ))}
-            </View>
-          </>
-        )}
-      </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -209,113 +146,122 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FAF9F6",
   },
-  scrollView: {
-    marginTop: 55,
-    padding: 15,
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    padding: 20,
+    backgroundColor: "#6A5ACD",
   },
-  title: {
-    fontSize: 23,
+  headerTitle: {
+    color: "#fff",
+    fontSize: 24,
     fontWeight: "bold",
-    marginTop: 15,
   },
   boostButton: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: "#008B8B",
-    padding: 10,
-    borderRadius: 30,
-  },
-  boostText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-  filters: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 20,
-    gap: 10,
-  },
-  filterOption: {
-    borderWidth: 0.7,
-    borderColor: "#808080",
+    backgroundColor: "#FF6F61",
     padding: 10,
     borderRadius: 20,
   },
-  activeOption: {
-    backgroundColor: "black",
-    borderColor: "transparent",
+  boostText: {
+    color: "#fff",
+    marginLeft: 5,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: 20,
+  },
+  filterButton: {
+    padding: 10,
+    marginHorizontal: 5,
+    borderRadius: 20,
+    backgroundColor: "#E0E0E0",
+  },
+  filterActive: {
+    backgroundColor: "#4CAF50",
   },
   filterText: {
-    fontSize: 14,
-    fontWeight: "400",
     color: "#808080",
   },
-  activeText: {
-    color: "white",
+  filterActiveText: {
+    color: "#fff",
   },
-  mainLike: {
-    padding: 20,
-    borderColor: "#E0E0E0",
-    borderWidth: 1,
-    borderRadius: 7,
+  cardContainer: {
+    paddingHorizontal: 15,
+  },
+  card: {
+    flexDirection: "row",
+    marginBottom: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    elevation: 5,
+    overflow: "hidden",
+  },
+  cardImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    margin: 10,
+  },
+  cardDetails: {
+    flex: 1,
+    padding: 15,
+  },
+  cardName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  cardComment: {
+    color: "#808080",
+    marginBottom: 10,
+  },
+  cardActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  actionButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "#F8F8F8",
+    marginRight: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    elevation: 2,
+  },
+  emptyState: {
+    alignItems: "center",
+    marginTop: 50,
+  },
+  emptyImage: {
+    width: 150,
+    height: 150,
     marginBottom: 20,
   },
-  likeInfo: {
-    backgroundColor: "#f0f0f0",
-    padding: 12,
-    borderRadius: 5,
-    marginBottom: 8,
+  emptyText: {
+    color: "#808080",
+    fontSize: 16,
+    marginBottom: 10,
   },
-  mainName: {
-    fontSize: 22,
+  emptyButton: {
+    backgroundColor: "#FF6F61",
+    padding: 10,
+    borderRadius: 20,
+  },
+  emptyButtonText: {
+    color: "#fff",
     fontWeight: "bold",
   },
-  mainImage: {
-    width: "100%",
-    height: 350,
-    resizeMode: "cover",
-    borderRadius: 10,
-    marginTop: 20,
-  },
-  upNextTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 20,
-  },
-  upNextContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 20,
-  },
-  nextLike: {
-    backgroundColor: "white",
-    marginVertical: 10,
-  },
-  commentBox: {
-    backgroundColor: "#F5F3C6",
-    padding: 12,
-    borderRadius: 5,
-    marginBottom: 8,
-  },
-  likeBox: {
-    backgroundColor: "#f0f0f0",
-    padding: 12,
-    borderRadius: 5,
-    marginBottom: 8,
-  },
-  nextName: {
-    fontSize: 17,
-    fontWeight: "500",
-  },
-  nextImage: {
-    height: 220,
-    width: 180,
-    borderRadius: 4,
+  loadingText: {
+    textAlign: "center",
+    marginVertical: 20,
+    color: "#808080",
+    fontSize: 16,
   },
 });

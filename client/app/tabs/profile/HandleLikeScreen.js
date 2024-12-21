@@ -1,21 +1,20 @@
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   Pressable,
-  Alert,
-  Platform,
   Dimensions,
   Image,
+  SafeAreaView,
 } from "react-native";
-import React from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import Entypo from "react-native-vector-icons/Entypo";
 import AntDesign from "react-native-vector-icons/AntDesign";
-import axios from "axios";
 import Carousel from "react-native-reanimated-carousel";
+import axios from "axios";
 import constants from "../../../constants/api";
+import CustomModal from "../../../components/CustomModal"; // Ensure the path is correct
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -23,10 +22,25 @@ const HandleLikeScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
 
-  const createMatch = async () => {
+  // Modal state
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
+
+  // Function to handle match creation
+  const handleMatch = async () => {
     try {
-      const currentUserId = route?.params?.userId;
-      const selectedUserId = route?.params?.selectedUserId;
+      console.log("Handle match called");
+      const currentUserId = route.params?.userId;
+      const selectedUserId = route.params?.selectedUserId;
+
+      if (!currentUserId || !selectedUserId) {
+        console.error("Missing userId or selectedUserId");
+        closeModal();
+        return;
+      }
+
       const response = await axios.post(
         `${constants.API_URL}/api/user/create-match`,
         {
@@ -36,84 +50,84 @@ const HandleLikeScreen = () => {
       );
 
       if (response.status === 200) {
-        Alert.alert("It's a match!", `You matched with ${route?.params?.name}`);
+        console.log("Match created successfully");
+        closeModal();
         navigation.goBack();
       } else {
-        console.error("Failed to create match");
+        console.error("Failed to create a match");
+        closeModal();
       }
     } catch (error) {
       console.error("Error creating match:", error);
-    }
-  };
-
-  const match = () => {
-    if (Platform.OS === "ios") {
-      Alert.alert(`Match with ${route?.params?.name}?`, ``, [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel",
-        },
-        { text: "OK", onPress: createMatch },
-      ]);
-    } else {
-      createMatch();
+      closeModal();
     }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={styles.header}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/* Header */}
+      <View style={styles.goBackContainer}>
         <Pressable
           onPress={() => navigation.goBack()}
           style={styles.goBackButton}
         >
           <AntDesign name="arrowleft" size={24} color="black" />
+          <Text style={styles.goBackText}>Go Back</Text>
         </Pressable>
       </View>
 
+      {/* Content */}
       <ScrollView style={styles.container}>
-        {route?.params?.imageUrls?.length > 0 && (
+        {/* Carousel */}
+        {route?.params?.imageUrls?.length > 0 ? (
           <Carousel
-            width={screenWidth}
-            height={350}
-            data={route?.params?.imageUrls.filter((img) => img !== "")}
-            renderItem={({ item }) => (
-              <Image style={styles.profileImage} source={{ uri: item }} />
-            )}
             loop
+            width={screenWidth - 24}
+            height={350}
+            autoPlay
+            data={route?.params?.imageUrls.filter((img) => img !== "")}
+            scrollAnimationDuration={1000}
+            renderItem={({ item }) => (
+              <View style={styles.carouselContainer}>
+                <Image style={styles.carouselImage} source={{ uri: item }} />
+              </View>
+            )}
           />
+        ) : (
+          <View style={styles.placeholderContainer}>
+            <Text style={styles.placeholderText}>
+              No images available for this profile.
+            </Text>
+          </View>
         )}
 
-        <View style={styles.detailsContainer}>
+        {/* Profile Information */}
+        <View style={styles.additionalInfo}>
           <Text style={styles.profileName}>
-            {route?.params?.firstName + " " + route?.params?.lastName}
+            {route?.params?.firstName} {route?.params?.lastName}
           </Text>
-          <Text style={styles.bio}>
-            {route?.params?.bio || "No bio provided."}
-          </Text>
-          <View style={styles.additionalInfo}>
-            {route?.params?.age && (
-              <Text style={styles.infoText}>Age: {route?.params?.age}</Text>
-            )}
-            {route?.params?.gender && (
-              <Text style={styles.infoText}>
-                Gender: {route?.params?.gender}
-              </Text>
-            )}
-            {route?.params?.province && (
-              <Text style={styles.infoText}>
-                Province: {route?.params?.province}
-              </Text>
-            )}
-            {route?.params?.district && (
-              <Text style={styles.infoText}>
-                District: {route?.params?.district}
-              </Text>
-            )}
-          </View>
+          {route?.params?.bio && (
+            <Text style={styles.infoText}>Bio: {route?.params?.bio}</Text>
+          )}
+          {route?.params?.age && (
+            <Text style={styles.infoText}>Age: {route?.params?.age}</Text>
+          )}
+          {route?.params?.gender && (
+            <Text style={styles.infoText}>Gender: {route?.params?.gender}</Text>
+          )}
+          {route?.params?.province && (
+            <Text style={styles.infoText}>
+              Province: {route?.params?.province}
+            </Text>
+          )}
+          {route?.params?.district && (
+            <Text style={styles.infoText}>
+              District: {route?.params?.district}
+            </Text>
+          )}
         </View>
 
+        {/* Prompts */}
         {route?.params?.prompts?.length > 0 ? (
           route?.params?.prompts.map((prompt, index) => (
             <View key={index} style={styles.promptCard}>
@@ -122,103 +136,117 @@ const HandleLikeScreen = () => {
             </View>
           ))
         ) : (
-          <Text style={styles.noPromptsText}>
-            This user hasn't answered any prompts yet.
-          </Text>
+          <View style={styles.placeholderContainer}>
+            <Text style={styles.placeholderText}>
+              This user hasn't answered any prompts yet.
+            </Text>
+          </View>
         )}
       </ScrollView>
 
-      <Pressable onPress={match} style={styles.messageButton}>
+      {/* Match Button */}
+      <Pressable onPress={openModal} style={styles.matchButton}>
         <AntDesign name="heart" size={30} color="red" />
       </Pressable>
-    </View>
+
+      {/* Custom Modal */}
+      <CustomModal
+        visible={modalVisible}
+        title="Match Confirmation"
+        message={`Do you want to match with ${route.params?.firstName}?`}
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={handleMatch}
+        onCancel={closeModal}
+      />
+    </SafeAreaView>
   );
 };
 
 export default HandleLikeScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-    padding: 12,
-  },
-  header: {
+  goBackContainer: {
+    padding: 10,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 12,
   },
   goBackButton: {
-    padding: 8,
-    borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    padding: 10,
   },
-  likesCount: {
-    color: "white",
+  goBackText: {
+    color: "black",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "bold",
+    marginLeft: 8,
   },
-  profileImage: {
+  container: {
+    flex: 1,
+    marginHorizontal: 12,
+  },
+  carouselContainer: {
+    marginVertical: 10,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  carouselImage: {
     width: "100%",
     height: 350,
-    borderRadius: 10,
     resizeMode: "cover",
-    marginVertical: 10,
+    borderRadius: 10,
   },
-  detailsContainer: {
-    marginVertical: 15,
+  placeholderContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: "#888",
+    textAlign: "center",
+  },
+  additionalInfo: {
+    marginTop: 20,
     paddingHorizontal: 10,
   },
   profileName: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 5,
-  },
-  bio: {
-    fontSize: 14,
-    color: "#666",
+    color: "#333",
     marginBottom: 10,
   },
-  additionalInfo: {
-    marginTop: 10,
-  },
   infoText: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#333",
-    marginVertical: 2,
+    marginVertical: 5,
   },
   promptCard: {
-    backgroundColor: "white",
+    backgroundColor: "#f7f7f7",
     padding: 16,
     borderRadius: 10,
-    marginVertical: 10,
     height: 150,
     justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    marginVertical: 10,
   },
   promptQuestion: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 8,
+    color: "#452c63",
   },
   promptAnswer: {
     fontSize: 18,
     fontWeight: "600",
-    marginTop: 10,
+    color: "#333",
   },
-  noPromptsText: {
-    fontSize: 16,
-    color: "#888",
-    textAlign: "center",
-    marginTop: 20,
-  },
-  messageButton: {
+  matchButton: {
     position: "absolute",
     bottom: 30,
     right: 20,
@@ -233,5 +261,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 6,
+    zIndex: 10,
   },
 });
