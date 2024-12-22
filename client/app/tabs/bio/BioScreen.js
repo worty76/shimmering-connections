@@ -134,11 +134,11 @@ const Profile = () => {
   return (
     <View style={styles.mainContainer}>
       <Pressable style={styles.editIconButton} onPress={goToEditInfo}>
-        <MaterialIcons name="edit" size={28} color="#3182CE" />
+        <MaterialIcons name="edit" size={28} color="#DC143C" />
       </Pressable>
       <ScrollView contentContainerStyle={styles.container}>
         {loading ? (
-          <ActivityIndicator size="large" color="#5A67D8" />
+          <ActivityIndicator size="large" color="#DC143C" />
         ) : (
           <>
             <View style={styles.profileHeader}>
@@ -181,7 +181,7 @@ const Profile = () => {
                   <AntDesign
                     name={isGenerating ? "loading1" : "sync"}
                     size={20}
-                    color={isGenerating ? "#999" : "#5A67D8"}
+                    color={isGenerating ? "#999" : "#DC143C"}
                   />
                 </Pressable>
               </View>
@@ -213,7 +213,7 @@ export default Profile;
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FFF5F5",
     paddingBottom: 20,
   },
   container: {
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     top: 20,
     right: 20,
     zIndex: 10,
-    backgroundColor: "#EDF2F7",
+    backgroundColor: "#FFECEC",
     borderRadius: 20,
     padding: 5,
   },
@@ -241,13 +241,13 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 2,
-    borderColor: "#5A67D8",
+    borderColor: "#DC143C",
   },
   cameraIconContainer: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#5A67D8",
+    backgroundColor: "#DC143C",
     borderRadius: 15,
     padding: 5,
   },
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   bioInput: {
-    backgroundColor: "#EDF2F7",
+    backgroundColor: "#FFECEC",
     borderRadius: 10,
     padding: 15,
     fontSize: 14,
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   actionButton: {
-    backgroundColor: "#5A67D8",
+    backgroundColor: "#DC143C",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   logoutButton: {
-    backgroundColor: "#E53E3E",
+    backgroundColor: "#FF6347",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,

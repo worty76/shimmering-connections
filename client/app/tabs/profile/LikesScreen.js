@@ -54,6 +54,8 @@ const LikesScreen = () => {
     <TouchableOpacity
       onPress={() =>
         navigation.navigate("HandleLikeScreen", {
+          userId: userId,
+          selectedUserId: like.userId?._id,
           firstName: like.userId?.firstName,
           lastName: like.userId?.lastName,
           imageUrls: like.userId?.imageUrls,
@@ -80,7 +82,7 @@ const LikesScreen = () => {
         </Text>
         <View style={styles.cardActions}>
           <Pressable style={styles.actionButton}>
-            <Ionicons name="heart" size={20} color="#FF6F61" />
+            <Ionicons name="heart" size={20} color="#DC143C" />
           </Pressable>
         </View>
       </View>
@@ -144,14 +146,14 @@ export default LikesScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FAF9F6",
+    backgroundColor: "#FDF5F5",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#6A5ACD",
+    backgroundColor: "#DC143C",
   },
   headerTitle: {
     color: "#fff",
@@ -160,7 +162,7 @@ const styles = StyleSheet.create({
   },
   boostButton: {
     flexDirection: "row",
-    backgroundColor: "#FF6F61",
+    backgroundColor: "#FF6347",
     padding: 10,
     borderRadius: 20,
   },
@@ -177,10 +179,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginHorizontal: 5,
     borderRadius: 20,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: "#F5F5F5",
   },
   filterActive: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#DC143C",
   },
   filterText: {
     color: "#808080",
@@ -250,7 +252,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   emptyButton: {
-    backgroundColor: "#FF6F61",
+    backgroundColor: "#DC143C",
     padding: 10,
     borderRadius: 20,
   },
