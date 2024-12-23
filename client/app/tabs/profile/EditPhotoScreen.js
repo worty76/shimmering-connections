@@ -8,11 +8,12 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Pressable,
 } from "react-native";
 import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
-import { EvilIcons } from "@expo/vector-icons";
+import { EvilIcons, AntDesign } from "@expo/vector-icons"; // Imported AntDesign
 import axios from "axios";
 import api from "../../../constants/api";
 
@@ -125,7 +126,7 @@ const EditPhotosScreen = ({ route, navigation }) => {
         const { updatedImages } = response.data;
 
         setImageUrls([
-          updatedImages,
+          ...updatedImages,
           ...new Array(6 - updatedImages.length).fill(""),
         ]);
         showAlert("Success", "Images updated successfully!");
@@ -142,7 +143,17 @@ const EditPhotosScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ margin: 20 }}>
+      <View style={styles.header}>
+        <Pressable
+          style={styles.goBackButton}
+          onPress={() => navigation.goBack()}
+          accessibilityLabel="Go Back Button"
+        >
+          <AntDesign name="arrowleft" size={24} color="#DC143C" />
+        </Pressable>
+      </View>
+
+      <View style={styles.content}>
         <Text style={styles.title}>Edit Your Photos</Text>
 
         <View style={styles.photoGrid}>
@@ -154,30 +165,36 @@ const EditPhotosScreen = ({ route, navigation }) => {
                   <TouchableOpacity
                     onPress={() => handleRemoveImage(index)}
                     style={styles.removeIconWrapper}
+                    accessibilityLabel={`Remove photo ${index + 1}`}
                   >
-                    <EvilIcons name="close" size={30} color="#fff" />
+                    <EvilIcons name="close" size={24} color="#fff" />
                   </TouchableOpacity>
                 </>
               ) : (
                 <TouchableOpacity
                   onPress={handleAddImage}
-                  style={[styles.photoContainer, styles.emptyPhotoContainer]}
+                  style={styles.emptyPhotoContainer}
+                  accessibilityLabel={`Add photo ${index + 1}`}
                 >
-                  <EvilIcons name="image" size={30} color="#aaa" />
+                  <EvilIcons name="image" size={30} color="#DC143C" />
                 </TouchableOpacity>
               )}
             </View>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.addButton} onPress={handleAddImage}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleAddImage}
+          accessibilityLabel="Add Photo Button"
+        >
           <Text style={styles.addButtonText}>Add Photo</Text>
         </TouchableOpacity>
 
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color="#008B8B"
+            color="#DC143C"
             style={styles.loader}
           />
         ) : (
@@ -185,6 +202,7 @@ const EditPhotosScreen = ({ route, navigation }) => {
             onPress={saveImages}
             style={styles.saveButton}
             disabled={isLoading}
+            accessibilityLabel="Save Changes Button"
           >
             <Text style={styles.saveButtonText}>Save Changes</Text>
           </TouchableOpacity>
@@ -196,21 +214,39 @@ const EditPhotosScreen = ({ route, navigation }) => {
 
 export default EditPhotosScreen;
 
-// Update the styles
+// Updated Styles with Crimson as the Main Color Palette
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F4F4",
+    backgroundColor: "#FFF5F5", // Light background for contrast
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#FFF5F5",
+    display: "flex",
+  },
+  goBackButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  goBackText: {
+    color: "#DC143C",
+    fontSize: 16,
+    marginLeft: 5,
+  },
+  content: {
+    flex: 1,
+    margin: 20,
   },
   title: {
     fontSize: 26,
     fontWeight: "600",
     textAlign: "center",
     marginBottom: 20,
-    color: "#333",
+    color: "#DC143C", // Crimson color
   },
   photoGrid: {
-    marginTop: 20,
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 15,
@@ -224,6 +260,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "#f0f0f0",
     marginBottom: 15,
+    borderWidth: 2,
+    borderColor: "#DC143C", // Crimson border
+    // iOS Shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // Android Elevation
+    elevation: 3,
   },
   photo: {
     width: "100%",
@@ -235,7 +280,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 5,
     right: 5,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    backgroundColor: "rgba(220, 20, 60, 0.8)", // Semi-transparent Crimson
     borderRadius: 18,
     width: 30,
     height: 30,
@@ -243,46 +288,62 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   emptyPhotoContainer: {
-    backgroundColor: "#E0E0E0",
+    backgroundColor: "#FFECEC", // Light Crimson background
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#ddd",
+    borderColor: "#DC143C", // Crimson border
     width: "100%",
     height: "100%",
+    // iOS Shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    // Android Elevation
+    elevation: 1,
   },
   addButton: {
-    backgroundColor: "#008B8B",
+    backgroundColor: "#DC143C", // Crimson background
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 20,
     alignItems: "center",
     marginBottom: 20,
+    // iOS Shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    // Android Elevation
+    elevation: 3,
   },
   addButtonText: {
-    color: "#fff",
+    color: "#fff", // White text
     fontSize: 16,
     fontWeight: "600",
   },
   saveButton: {
-    backgroundColor: "#008B8B",
+    backgroundColor: "#DC143C", // Crimson background
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 30,
+    // iOS Shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    // Android Elevation
+    elevation: 3,
   },
   saveButtonText: {
-    color: "#fff",
+    color: "#fff", // White text
     fontSize: 18,
     fontWeight: "bold",
   },
   loader: {
     marginTop: 20,
-  },
-  imageIcon: {
-    flex: 1, // Ensures the icon expands to fill the container's height
-    justifyContent: "center", // Centers the icon vertically
-    alignItems: "center", // Centers the icon horizontally
   },
 });

@@ -249,7 +249,6 @@ const EditInfoScreen = () => {
           accessibilityLabel="Go Back Button"
         >
           <AntDesign name="arrowleft" size={24} color="#DC143C" />
-          <Text style={styles.goBackText}>Go Back</Text>
         </Pressable>
         <Text style={styles.header}>Edit Your Info</Text>
         <View style={styles.sectionContainer}>

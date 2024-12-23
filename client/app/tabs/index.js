@@ -23,12 +23,9 @@ export default function BottomTabs() {
         tabBarShowLabel: false,
         tabBarStyle: {
           position: "absolute",
-          bottom: 10,
-          left: 20,
-          right: 20,
           elevation: 5,
           backgroundColor: "#ffffff",
-          borderRadius: 20,
+          borderRadius: 2,
           height: 50, // Reduced height
           borderTopWidth: 0, // Remove the default top border
           paddingBottom: 5, // Adjust padding to reduce empty space
