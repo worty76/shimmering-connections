@@ -44,42 +44,40 @@ const ProfileDetailsScreen = () => {
 
   if (loading) {
     return (
-      <View style={[styles.loading, { backgroundColor: "#fff" }]}>
-        <ActivityIndicator size="large" color="#452c63" />
+      <View style={[styles.loading, { backgroundColor: "#FFF5F5" }]}>
+        <ActivityIndicator size="large" color="#DC143C" />
       </View>
     );
   }
 
   if (!profile) {
     return (
-      <View style={[styles.errorContainer, { backgroundColor: "#fff" }]}>
+      <View style={[styles.errorContainer, { backgroundColor: "#FFF5F5" }]}>
         <Text style={styles.errorText}>Profile not found</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ backgroundColor: "#fff", flex: 1 }}>
-      <View style={styles.goBackContainer}>
+    <SafeAreaView style={{ backgroundColor: "#FFF5F5", flex: 1 }}>
+      <View style={styles.header}>
         <Pressable
           onPress={() => navigation.goBack()}
           style={styles.goBackButton}
+          accessibilityLabel="Go Back Button"
         >
-          <AntDesign name="arrowleft" size={24} color="black" />
-          <Text style={styles.goBackText}>Go Back</Text>
+          <AntDesign name="arrowleft" size={24} color="#DC143C" />
         </Pressable>
       </View>
 
       <ScrollView>
         <View style={styles.container}>
-          <View style={styles.header}>
-            <View style={styles.profileHeader}>
-              <Text style={styles.profileName}>
-                {profile.firstName + " " + (profile.lastName || "")}
-              </Text>
-              <View style={styles.newBadge}>
-                <Text style={styles.badgeText}>New Here</Text>
-              </View>
+          <View style={styles.profileHeader}>
+            <Text style={styles.profileName}>
+              {profile.firstName + " " + (profile.lastName || "")}
+            </Text>
+            <View style={styles.newBadge}>
+              <Text style={styles.badgeText}>New Here</Text>
             </View>
           </View>
 
@@ -163,42 +161,37 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "red",
   },
-  container: {
-    marginHorizontal: 12,
-    marginVertical: 12,
-  },
-  goBackContainer: {
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#FFF5F5",
   },
   goBackButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
   },
   goBackText: {
-    color: "black",
+    color: "#DC143C",
     fontSize: 16,
-    fontWeight: "bold",
-    marginLeft: 8,
+    marginLeft: 5,
+    fontWeight: "600",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  container: {
+    marginHorizontal: 12,
+    marginVertical: 12,
   },
   profileHeader: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 20,
   },
   profileName: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#333",
+    color: "#000",
   },
   newBadge: {
-    backgroundColor: "#452c63",
+    backgroundColor: "#DC143C",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 20,
@@ -228,7 +221,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 16,
-    color: "#888",
+    color: "#DC143C",
     textAlign: "center",
   },
   additionalInfo: {
@@ -243,26 +236,27 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   promptCard: {
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#fff",
     padding: 16,
-    borderRadius: 10,
-    height: 150,
-    justifyContent: "center",
+    borderRadius: 12,
+    justifyContent: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#DC143C",
   },
   promptQuestion: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
     marginBottom: 8,
-    color: "#452c63",
+    color: "#DC143C",
   },
   promptAnswer: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "500",
     color: "#333",
   },
 });

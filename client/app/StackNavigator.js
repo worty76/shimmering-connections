@@ -156,7 +156,7 @@ const StackNavigator = () => {
         <Stack.Screen
           name="EditPhotosScreen"
           component={EditPhotosScreen}
-          options={{ headerShown: true, title: "Edit Photos" }}
+          options={{ headerShown: false, title: "Edit Photos" }}
         />
         <Stack.Screen
           name="ChatRoom"

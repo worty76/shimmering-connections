@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import {
+  ScrollView,
   StyleSheet,
   Text,
   View,
-  ScrollView,
-  Pressable,
-  Dimensions,
   Image,
+  ActivityIndicator,
+  Dimensions,
   SafeAreaView,
+  Pressable,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import AntDesign from "react-native-vector-icons/AntDesign";
@@ -16,11 +17,25 @@ import axios from "axios";
 import constants from "../../../constants/api";
 import CustomModal from "../../../components/CustomModal"; // Ensure the path is correct
 
-const screenWidth = Dimensions.get("window").width;
+const { width } = Dimensions.get("window");
 
 const HandleLikeScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const {
+    profileId,
+    userId,
+    selectedUserId,
+    firstName,
+    lastName,
+    imageUrls,
+    bio,
+    age,
+    gender,
+    province,
+    district,
+    prompts,
+  } = route.params;
 
   // Modal state
   const [modalVisible, setModalVisible] = useState(false);
@@ -32,10 +47,8 @@ const HandleLikeScreen = () => {
   const handleMatch = async () => {
     try {
       console.log("Handle match called");
-      const currentUserId = route.params?.userId;
-      const selectedUserId = route.params?.selectedUserId;
 
-      if (!currentUserId || !selectedUserId) {
+      if (!userId || !selectedUserId) {
         console.error("Missing userId or selectedUserId");
         closeModal();
         return;
@@ -44,7 +57,7 @@ const HandleLikeScreen = () => {
       const response = await axios.post(
         `${constants.API_URL}/api/user/create-match`,
         {
-          currentUserId,
+          currentUserId: userId,
           selectedUserId,
         }
       );
@@ -64,84 +77,86 @@ const HandleLikeScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ backgroundColor: "#FFF5F5", flex: 1 }}>
       {/* Header */}
-      <View style={styles.goBackContainer}>
+      <View style={styles.header}>
         <Pressable
           onPress={() => navigation.goBack()}
           style={styles.goBackButton}
+          accessibilityLabel="Go Back Button"
         >
-          <AntDesign name="arrowleft" size={24} color="black" />
-          <Text style={styles.goBackText}>Go Back</Text>
+          <AntDesign name="arrowleft" size={24} color="#DC143C" />
         </Pressable>
       </View>
 
       {/* Content */}
-      <ScrollView style={styles.container}>
-        {/* Carousel */}
-        {route?.params?.imageUrls?.length > 0 ? (
-          <Carousel
-            loop
-            width={screenWidth - 24}
-            height={350}
-            autoPlay
-            data={route?.params?.imageUrls.filter((img) => img !== "")}
-            scrollAnimationDuration={1000}
-            renderItem={({ item }) => (
-              <View style={styles.carouselContainer}>
-                <Image style={styles.carouselImage} source={{ uri: item }} />
-              </View>
-            )}
-          />
-        ) : (
-          <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderText}>
-              No images available for this profile.
+      <ScrollView>
+        <View style={styles.container}>
+          {/* Profile Header */}
+          <View style={styles.profileHeader}>
+            <Text style={styles.profileName}>
+              {firstName + " " + (lastName || "")}
             </Text>
+            <View style={styles.newBadge}>
+              <Text style={styles.badgeText}>New Here</Text>
+            </View>
           </View>
-        )}
 
-        {/* Profile Information */}
-        <View style={styles.additionalInfo}>
-          <Text style={styles.profileName}>
-            {route?.params?.firstName} {route?.params?.lastName}
-          </Text>
-          {route?.params?.bio && (
-            <Text style={styles.infoText}>Bio: {route?.params?.bio}</Text>
+          {/* Carousel */}
+          {imageUrls?.length > 0 ? (
+            <Carousel
+              loop
+              width={width - 24}
+              height={350}
+              autoPlay={true}
+              data={imageUrls.filter((img) => img !== "")}
+              scrollAnimationDuration={1000}
+              renderItem={({ item }) => (
+                <View style={styles.carouselContainer}>
+                  <Image style={styles.carouselImage} source={{ uri: item }} />
+                </View>
+              )}
+              pagingEnabled
+            />
+          ) : (
+            <View style={styles.placeholderContainer}>
+              <Text style={styles.placeholderText}>
+                No images available for this profile.
+              </Text>
+            </View>
           )}
-          {route?.params?.age && (
-            <Text style={styles.infoText}>Age: {route?.params?.age}</Text>
-          )}
-          {route?.params?.gender && (
-            <Text style={styles.infoText}>Gender: {route?.params?.gender}</Text>
-          )}
-          {route?.params?.province && (
-            <Text style={styles.infoText}>
-              Province: {route?.params?.province}
-            </Text>
-          )}
-          {route?.params?.district && (
-            <Text style={styles.infoText}>
-              District: {route?.params?.district}
-            </Text>
+
+          {/* Additional Information */}
+          <View style={styles.additionalInfo}>
+            {bio && <Text style={styles.infoText}>Bio: {bio}</Text>}
+            {age && <Text style={styles.infoText}>Age: {age}</Text>}
+            {gender && <Text style={styles.infoText}>Gender: {gender}</Text>}
+            {province && (
+              <Text style={styles.infoText}>Province: {province}</Text>
+            )}
+            {district && (
+              <Text style={styles.infoText}>District: {district}</Text>
+            )}
+          </View>
+
+          {/* Prompts */}
+          {prompts?.length > 0 ? (
+            prompts.map((prompt, index) => (
+              <View key={index} style={styles.promptContainer}>
+                <View style={styles.promptCard}>
+                  <Text style={styles.promptQuestion}>{prompt.question}</Text>
+                  <Text style={styles.promptAnswer}>{prompt.answer}</Text>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={styles.placeholderContainer}>
+              <Text style={styles.placeholderText}>
+                This user hasn't answered any prompts yet.
+              </Text>
+            </View>
           )}
         </View>
-
-        {/* Prompts */}
-        {route?.params?.prompts?.length > 0 ? (
-          route?.params?.prompts.map((prompt, index) => (
-            <View key={index} style={styles.promptCard}>
-              <Text style={styles.promptQuestion}>{prompt.question}</Text>
-              <Text style={styles.promptAnswer}>{prompt.answer}</Text>
-            </View>
-          ))
-        ) : (
-          <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderText}>
-              This user hasn't answered any prompts yet.
-            </Text>
-          </View>
-        )}
       </ScrollView>
 
       {/* Match Button */}
@@ -153,7 +168,7 @@ const HandleLikeScreen = () => {
       <CustomModal
         visible={modalVisible}
         title="Match Confirmation"
-        message={`Do you want to match with ${route.params?.firstName}?`}
+        message={`Do you want to match with ${firstName}?`}
         confirmText="Yes"
         cancelText="No"
         onConfirm={handleMatch}
@@ -166,25 +181,57 @@ const HandleLikeScreen = () => {
 export default HandleLikeScreen;
 
 const styles = StyleSheet.create({
-  goBackContainer: {
-    padding: 10,
-    flexDirection: "row",
+  loading: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#FFF5F5",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFF5F5",
+  },
+  errorText: {
+    fontSize: 18,
+    color: "red",
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#FFF5F5",
   },
   goBackButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
-  },
-  goBackText: {
-    color: "black",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginLeft: 8,
   },
   container: {
-    flex: 1,
     marginHorizontal: 12,
+    marginVertical: 12,
+  },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  profileName: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  newBadge: {
+    backgroundColor: "#DC143C",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginLeft: 10,
+  },
+  badgeText: {
+    textAlign: "center",
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
   },
   carouselContainer: {
     marginVertical: 10,
@@ -204,46 +251,42 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 16,
-    color: "#888",
+    color: "#DC143C",
     textAlign: "center",
   },
   additionalInfo: {
     marginTop: 20,
-    paddingHorizontal: 10,
-  },
-  profileName: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
   },
   infoText: {
     fontSize: 16,
     color: "#333",
     marginVertical: 5,
   },
+  promptContainer: {
+    marginVertical: 15,
+  },
   promptCard: {
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#fff",
     padding: 16,
-    borderRadius: 10,
-    height: 150,
-    justifyContent: "center",
+    borderRadius: 12,
+    justifyContent: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    marginVertical: 10,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#DC143C",
   },
   promptQuestion: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
     marginBottom: 8,
-    color: "#452c63",
+    color: "#DC143C",
   },
   promptAnswer: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "500",
     color: "#333",
   },
   matchButton: {
