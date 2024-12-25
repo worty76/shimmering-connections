@@ -42,11 +42,57 @@ const userSchema = new Schema({
   district: {
     type: String,
   },
-  datingPreferences: [
+  zodiac: {
+    type: String,
+  },
+  passions: [
     {
       type: String,
     },
   ],
+  education: {
+    type: String,
+  },
+  religion: {
+    type: String,
+  },
+  interests: [
+    {
+      type: String,
+    },
+  ],
+  datingPreferences: {
+    gender: [
+      {
+        type: String,
+      },
+    ],
+    interests: [
+      {
+        type: String,
+      },
+    ],
+    zodiac: [
+      {
+        type: String,
+      },
+    ],
+    passions: [
+      {
+        type: String,
+      },
+    ],
+    education: [
+      {
+        type: String,
+      },
+    ],
+    religion: [
+      {
+        type: String,
+      },
+    ],
+  },
   lookingFor: {
     type: String,
     required: true,
@@ -66,21 +112,6 @@ const userSchema = new Schema({
       },
     },
   ],
-  //   genderPreference: {
-  //     type: String,
-  //     enum: ['male', 'female', 'both'],
-  //     required: true,
-  //   },
-  //   ageRangePreference: {
-  //     min: {
-  //       type: Number,
-  //       default: 18,
-  //     },
-  //     max: {
-  //       type: Number,
-  //       default: 99,
-  //     },
-  //   },
   likedProfiles: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -128,7 +159,18 @@ const userSchema = new Schema({
     },
   ],
   notificationPreferences: {
-    // Define notification preferences here
+    email: {
+      type: Boolean,
+      default: true,
+    },
+    sms: {
+      type: Boolean,
+      default: false,
+    },
+    push: {
+      type: Boolean,
+      default: true,
+    },
   },
 });
 

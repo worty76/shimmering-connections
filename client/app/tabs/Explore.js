@@ -5,14 +5,15 @@ import {
   Alert,
   ActivityIndicator,
   SafeAreaView,
+  TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import { UserCard, MatchButton, NoMoreMatches } from "../../components";
 import axios from "axios";
-import Colors from "../../constants/colors";
 import constants from "../../constants/api";
 import { useFocusEffect } from "expo-router";
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 const Explore = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,7 @@ const Explore = ({ navigation }) => {
   const [userId, setUserId] = useState(null);
   const [auth, setAuth] = useState(null);
   const [users, setUsers] = useState([]);
+  const [applyPreferences, setApplyPreferences] = useState(false);
 
   const fetchUser = async () => {
     const token = await AsyncStorage.getItem("token");
@@ -49,34 +51,34 @@ const Explore = ({ navigation }) => {
     }
   }, [userId]);
 
-  // useEffect(() => {
-  //   if (auth && userId) {
-  //     fetchProfile();
-  //   }
-  // }, [auth, userId]);
-
   useFocusEffect(
     useCallback(() => {
       if (auth && userId) {
-        fetchProfile();
+        fetchProfiles();
       }
-    }, [auth, userId])
+    }, [auth, userId, applyPreferences])
   );
 
-  const fetchProfile = async () => {
+  const fetchProfiles = async () => {
     try {
       setLoading(true);
       const url = `${constants.API_URL}/api/user/profiles/`;
-      const params = { userId: userId };
+      const params = {
+        userId: userId,
+        applyPreferences: applyPreferences ? "true" : "false",
+      };
       const res = await axios.get(url, { params });
       setUsers(res?.data?.matches || []);
-      console.log(res);
       setUserIndex(0);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching user profiles:", error);
       setLoading(false);
     }
+  };
+
+  const togglePreferences = () => {
+    setApplyPreferences((prev) => !prev);
   };
 
   const userDislike = () => {
@@ -102,20 +104,47 @@ const Explore = ({ navigation }) => {
 
   const user = users && users[userIndex];
 
+  const handleReload = () => {
+    setApplyPreferences(false);
+    fetchProfiles();
+  };
+
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: "#FAF9F6" }]}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="crimson" />
       </View>
     );
   }
 
   if (users && userIndex >= users.length) {
-    return <NoMoreMatches onReloadPress={fetchProfile} />;
+    return <NoMoreMatches onReloadPress={handleReload} />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Button to toggle preferences */}
+      <TouchableOpacity
+        style={styles.filterButton}
+        onPress={() => togglePreferences()}
+      >
+        <Icon
+          name={applyPreferences ? "filter-list-off" : "filter-list"}
+          size={24}
+          color="#fff"
+        />
+      </TouchableOpacity>
+      {/* Button to edit preferences */}
+      <TouchableOpacity
+        style={styles.editPreferencesButton}
+        onPress={() =>
+          navigation.navigate("EditPreferencesScreen", {
+            userId,
+          })
+        }
+      >
+        <Icon name="edit" size={24} color="#fff" />
+      </TouchableOpacity>
       {user && (
         <UserCard
           onPress={() =>
@@ -133,12 +162,11 @@ const Explore = ({ navigation }) => {
         />
       )}
       <View style={styles.buttons}>
-        <MatchButton onPress={userDislike} icon="close" iconColor="#5B93FA" />
-
+        <MatchButton onPress={userDislike} icon="close" iconColor="crimson" />
         <MatchButton
           onPress={() => likeProfile(user)}
           icon="heart"
-          iconColor={Colors.primaryColor}
+          iconColor="crimson"
         />
       </View>
     </SafeAreaView>
@@ -166,11 +194,43 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   name: {
-    color: "white",
+    color: "crimson",
     fontSize: 28,
     fontWeight: "700",
     backgroundColor: "transparent",
     alignSelf: "center",
+  },
+  filterButton: {
+    position: "absolute",
+    top: 16,
+    right: 72,
+    zIndex: 10,
+    padding: 10,
+    backgroundColor: "crimson",
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 4,
+  },
+  editPreferencesButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 10,
+    padding: 10,
+    backgroundColor: "crimson",
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 4,
   },
 });
 

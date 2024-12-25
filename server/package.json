@@ -10,6 +10,7 @@
   "author": "lethanhdat",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "@turf/turf": "^7.1.0",
     "axios": "^1.7.7",
     "cloudinary": "^2.5.1",
