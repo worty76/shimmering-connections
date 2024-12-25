@@ -214,11 +214,10 @@ const EditPhotosScreen = ({ route, navigation }) => {
 
 export default EditPhotosScreen;
 
-// Updated Styles with Crimson as the Main Color Palette
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF5F5", // Light background for contrast
+    backgroundColor: "#FFF5F5",
   },
   header: {
     paddingHorizontal: 20,
@@ -244,7 +243,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
     marginBottom: 20,
-    color: "#DC143C", // Crimson color
+    color: "#DC143C",
   },
   photoGrid: {
     flexDirection: "row",
@@ -261,13 +260,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f0f0",
     marginBottom: 15,
     borderWidth: 2,
-    borderColor: "#DC143C", // Crimson border
-    // iOS Shadow
+    borderColor: "#DC143C",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    // Android Elevation
     elevation: 3,
   },
   photo: {
@@ -280,7 +277,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 5,
     right: 5,
-    backgroundColor: "rgba(220, 20, 60, 0.8)", // Semi-transparent Crimson
+    backgroundColor: "rgba(220, 20, 60, 0.8)",
     borderRadius: 18,
     width: 30,
     height: 30,
@@ -288,58 +285,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   emptyPhotoContainer: {
-    backgroundColor: "#FFECEC", // Light Crimson background
+    backgroundColor: "#FFECEC",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#DC143C", // Crimson border
+    borderColor: "#DC143C",
     width: "100%",
     height: "100%",
-    // iOS Shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
-    // Android Elevation
     elevation: 1,
   },
   addButton: {
-    backgroundColor: "#DC143C", // Crimson background
+    backgroundColor: "#DC143C",
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 20,
     alignItems: "center",
     marginBottom: 20,
-    // iOS Shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    // Android Elevation
     elevation: 3,
   },
   addButtonText: {
-    color: "#fff", // White text
+    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
   saveButton: {
-    backgroundColor: "#DC143C", // Crimson background
+    backgroundColor: "#DC143C",
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 30,
-    // iOS Shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    // Android Elevation
     elevation: 3,
   },
   saveButtonText: {
-    color: "#fff", // White text
+    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
   },

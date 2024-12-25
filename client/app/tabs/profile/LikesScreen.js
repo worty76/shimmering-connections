@@ -1,3 +1,4 @@
+import { useFocusEffect } from "@react-navigation/native"; // Import the useFocusEffect hook
 import {
   StyleSheet,
   Text,
@@ -33,22 +34,30 @@ const LikesScreen = () => {
     fetchUserId();
   }, []);
 
-  useEffect(() => {
-    const fetchLikes = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `${constants.API_URL}/api/user/received-likes/${userId}`
-        );
-        setLikes(response.data.receivedLikes || []);
-      } catch (error) {
-        console.error("Error fetching received likes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (userId) fetchLikes();
-  }, [userId]);
+  // This effect will refetch the likes data whenever the screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchLikes = async () => {
+        setLoading(true);
+        try {
+          const response = await axios.get(
+            `${constants.API_URL}/api/user/received-likes/${userId}`
+          );
+          setLikes(response.data.receivedLikes || []);
+        } catch (error) {
+          console.error("Error fetching received likes:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (userId) fetchLikes();
+
+      return () => {
+        // Cleanup if needed (this effect doesn't require cleanup)
+      };
+    }, [userId]) // Re-run this effect whenever userId changes
+  );
 
   const renderCard = (like) => (
     <TouchableOpacity

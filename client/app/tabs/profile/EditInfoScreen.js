@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   FlatList,
   Platform,
   TouchableOpacity,
-  Animated,
 } from "react-native";
 import { AntDesign, MaterialIcons, Entypo } from "@expo/vector-icons";
 import axios from "axios";
@@ -20,10 +19,65 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import RNPickerSelect from "react-native-picker-select";
 import provinceDistrictData from "../../../constants/location";
 
-/**
- * MultiSelect Component for handling multiple selections using checkboxes.
- */
-const MultiSelect = ({ options, selectedValues, onSelect }) => {
+const promptOptions = [
+  { question: "A random fact I love is" },
+  { question: "Typical Sunday" },
+  { question: "I go crazy for" },
+  { question: "Unusual Skills" },
+  { question: "My greatest strength" },
+  { question: "My simple pleasures" },
+  { question: "A life goal of mine" },
+  { question: "I unwind by" },
+  { question: "A boundary of mine is" },
+  { question: "I feel most supported when" },
+  { question: "I hype myself up by" },
+  { question: "To me, relaxation is" },
+  { question: "I beat my blues by" },
+  { question: "My skin care routine" },
+];
+
+const preferenceOptions = {
+  gender: [
+    { label: "Men", value: "Men" },
+    { label: "Women", value: "Women" },
+    { label: "Everyone", value: "Everyone" },
+  ],
+  zodiac: [
+    { label: "Aries", value: "Aries" },
+    { label: "Taurus", value: "Taurus" },
+    { label: "Gemini", value: "Gemini" },
+    { label: "Cancer", value: "Cancer" },
+    { label: "Leo", value: "Leo" },
+    { label: "Virgo", value: "Virgo" },
+    { label: "Libra", value: "Libra" },
+    { label: "Scorpio", value: "Scorpio" },
+    { label: "Sagittarius", value: "Sagittarius" },
+    { label: "Capricorn", value: "Capricorn" },
+    { label: "Aquarius", value: "Aquarius" },
+    { label: "Pisces", value: "Pisces" },
+  ],
+  passions: [
+    { label: "Music", value: "Music" },
+    { label: "Travel", value: "Travel" },
+    { label: "Cooking", value: "Cooking" },
+    { label: "Reading", value: "Reading" },
+    { label: "Sports", value: "Sports" },
+  ],
+  education: [
+    { label: "High School", value: "High School" },
+    { label: "College", value: "College" },
+    { label: "Postgraduate", value: "Postgraduate" },
+  ],
+  religion: [
+    { label: "Christianity", value: "Christianity" },
+    { label: "Islam", value: "Islam" },
+    { label: "Hinduism", value: "Hinduism" },
+    { label: "Buddhism", value: "Buddhism" },
+    { label: "Atheism", value: "Atheism" },
+  ],
+};
+
+const MultiSelect = ({ options, selectedValue, onSelect }) => {
   return (
     <View>
       {options.map((option) => (
@@ -34,9 +88,7 @@ const MultiSelect = ({ options, selectedValues, onSelect }) => {
         >
           <AntDesign
             name={
-              selectedValues.includes(option.value)
-                ? "checksquare"
-                : "checksquareo"
+              selectedValue === option.value ? "checksquare" : "checksquareo"
             }
             size={24}
             color="#DC143C"
@@ -61,9 +113,13 @@ const EditInfoScreen = () => {
     province: "",
     district: "",
     lookingFor: "",
-    datingPreferences: [],
+    zodiac: "",
+    passions: [],
+    education: "",
+    religion: "",
     prompts: [{ question: "", answer: "" }],
   });
+
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [isModalVisible, setModalVisible] = useState(false);
@@ -71,23 +127,10 @@ const EditInfoScreen = () => {
   const [selectedPrompt, setSelectedPrompt] = useState("");
   const [promptAnswer, setPromptAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  const promptOptions = [
-    { question: "A random fact I love is" },
-    { question: "Typical Sunday" },
-    { question: "I go crazy for" },
-    { question: "Unusual Skills" },
-    { question: "My greatest strength" },
-    { question: "My simple pleasures" },
-    { question: "A life goal of mine" },
-    { question: "I unwind by" },
-    { question: "A boundary of mine is" },
-    { question: "I feel most supported when" },
-    { question: "I hype myself up by" },
-    { question: "To me, relaxation is" },
-    { question: "I beat my blues by" },
-    { question: "My skin care routine" },
-  ];
+  const [isZodiacModalVisible, setZodiacModalVisible] = useState(false);
+  const [isPassionsModalVisible, setPassionsModalVisible] = useState(false);
+  const [isEducationModalVisible, setEducationModalVisible] = useState(false);
+  const [isReligionModalVisible, setReligionModalVisible] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -113,11 +156,7 @@ const EditInfoScreen = () => {
     }
   }, [userId]);
 
-  /**
-   * Handles input changes for text fields and picker selections.
-   */
   const handleInputChange = useCallback((field, value) => {
-    console.log(`Changing ${field} to ${value}`);
     if (field === "province") {
       setSelectedProvince(value);
       setSelectedDistrict("");
@@ -132,11 +171,6 @@ const EditInfoScreen = () => {
         ...prev,
         district: value,
       }));
-    } else if (field === "datingPreferences") {
-      setUser((prev) => ({
-        ...prev,
-        datingPreferences: value,
-      }));
     } else {
       setUser((prev) => ({
         ...prev,
@@ -147,6 +181,8 @@ const EditInfoScreen = () => {
 
   const openAddPromptModal = useCallback(() => {
     setAvailablePrompts(promptOptions);
+    setSelectedPrompt("");
+    setPromptAnswer("");
     setModalVisible(true);
   }, []);
 
@@ -212,33 +248,11 @@ const EditInfoScreen = () => {
       ? provinceDistrictData[selectedProvince]
       : [];
 
-  /**
-   * Helper function to generate picker items from an array of strings.
-   */
   const generatePickerItems = (itemsArray) =>
     itemsArray.map((item) => ({
       label: item,
       value: item,
     }));
-
-  // Optional: For modal animation
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (isModalVisible) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isModalVisible]);
 
   return (
     <>
@@ -282,7 +296,6 @@ const EditInfoScreen = () => {
             accessibilityLabel="Date of Birth Input"
           />
 
-          {/* Province Picker */}
           <View style={styles.pickerWrapper}>
             <Text style={styles.label}>Province</Text>
             <RNPickerSelect
@@ -300,21 +313,18 @@ const EditInfoScreen = () => {
                 placeholder: styles.placeholder,
               }}
               useNativeAndroidPickerStyle={false}
-              Icon={() => {
-                return (
-                  <Entypo
-                    name="chevron-down"
-                    size={20}
-                    color="#DC143C"
-                    style={styles.pickerIcon}
-                  />
-                );
-              }}
+              Icon={() => (
+                <Entypo
+                  name="chevron-down"
+                  size={20}
+                  color="#DC143C"
+                  style={styles.pickerIcon}
+                />
+              )}
               accessibilityLabel="Province Selection Picker"
             />
           </View>
 
-          {/* District Picker */}
           <View style={styles.pickerWrapper}>
             <Text style={styles.label}>District</Text>
             <RNPickerSelect
@@ -332,16 +342,14 @@ const EditInfoScreen = () => {
                 placeholder: styles.placeholder,
               }}
               useNativeAndroidPickerStyle={false}
-              Icon={() => {
-                return (
-                  <Entypo
-                    name="chevron-down"
-                    size={20}
-                    color="#DC143C"
-                    style={styles.pickerIcon}
-                  />
-                );
-              }}
+              Icon={() => (
+                <Entypo
+                  name="chevron-down"
+                  size={20}
+                  color="#DC143C"
+                  style={styles.pickerIcon}
+                />
+              )}
               disabled={!selectedProvince}
               accessibilityLabel="District Selection Picker"
             />
@@ -349,77 +357,38 @@ const EditInfoScreen = () => {
         </View>
 
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionHeader}>Looking For</Text>
-          <View style={styles.pickerWrapper}>
-            <RNPickerSelect
-              onValueChange={(value) => handleInputChange("lookingFor", value)}
-              items={[
-                { label: "Life Partner", value: "life_partner" },
-                { label: "Long-term relationship", value: "long_term" },
-                {
-                  label: "Long-term relationship open to short",
-                  value: "long_term_open_to_short",
-                },
-                {
-                  label: "Short-term relationship open to long",
-                  value: "short_term_open_to_long",
-                },
-                { label: "Short-term relationship", value: "short_term" },
-                {
-                  label: "Figuring out my dating goals",
-                  value: "figuring_out_goals",
-                },
-              ]}
-              placeholder={{
-                label: "Select Looking For",
-                value: null,
-                color: "#A0AEC0",
-              }}
-              value={user.lookingFor}
-              style={{
-                inputIOS: styles.pickerInput,
-                inputAndroid: styles.pickerInput,
-                placeholder: styles.placeholder,
-              }}
-              useNativeAndroidPickerStyle={false}
-              Icon={() => {
-                return (
-                  <Entypo
-                    name="chevron-down"
-                    size={20}
-                    color="#DC143C"
-                    style={styles.pickerIcon}
-                  />
-                );
-              }}
-              accessibilityLabel="Looking For Selection Picker"
-            />
-          </View>
-        </View>
+          <Text style={styles.sectionHeader}>User Preferences</Text>
 
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionHeader}>Dating Preferences</Text>
-          <View style={styles.pickerWrapper}>
-            <MultiSelect
-              options={[
-                { label: "Men", value: "Men" },
-                { label: "Women", value: "Women" },
-                { label: "Everyone", value: "Everyone" },
-              ]}
-              selectedValues={user.datingPreferences}
-              onSelect={(value) => {
-                let newPreferences = [...user.datingPreferences];
-                if (newPreferences.includes(value)) {
-                  newPreferences = newPreferences.filter(
-                    (item) => item !== value
-                  );
-                } else {
-                  newPreferences.push(value);
-                }
-                handleInputChange("datingPreferences", newPreferences);
-              }}
-            />
-          </View>
+          <Pressable
+            onPress={() => setZodiacModalVisible(true)}
+            style={styles.addButton}
+          >
+            <Text style={styles.addButtonText}>
+              {user.zodiac ? `Zodiac: ${user.zodiac}` : "Add Zodiac"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setEducationModalVisible(true)}
+            style={styles.addButton}
+          >
+            <Text style={styles.addButtonText}>
+              {user.education
+                ? `Education: ${user.education}`
+                : "Add Education"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setPassionsModalVisible(true)}
+            style={styles.addButton}
+          >
+            <Text style={styles.addButtonText}>
+              {user.passions.length
+                ? `Passions: ${user.passions.join(", ")}`
+                : "Add Passions"}
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.sectionContainer}>
@@ -470,10 +439,125 @@ const EditInfoScreen = () => {
         </Pressable>
       </ScrollView>
 
+      <Modal visible={isZodiacModalVisible} transparent animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Choose Your Zodiac</Text>
+            <FlatList
+              data={preferenceOptions.zodiac}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[
+                    styles.promptButton,
+                    user.zodiac === item.value && styles.selectedPromptButton,
+                  ]}
+                  onPress={() => {
+                    handleInputChange("zodiac", item.value);
+                    setZodiacModalVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.promptButtonText,
+                      user.zodiac === item.value && styles.selectedPromptText,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={isEducationModalVisible} transparent animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Choose Your Education</Text>
+            <FlatList
+              data={preferenceOptions.education}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[
+                    styles.promptButton,
+                    user.education === item.value &&
+                      styles.selectedPromptButton,
+                  ]}
+                  onPress={() => {
+                    handleInputChange("education", item.value);
+                    setEducationModalVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.promptButtonText,
+                      user.education === item.value &&
+                        styles.selectedPromptText,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={isPassionsModalVisible} transparent animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Choose Your Passions</Text>
+            <FlatList
+              data={preferenceOptions.passions}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[
+                    styles.promptButton,
+                    user.passions.includes(item.value) &&
+                      styles.selectedPromptButton,
+                  ]}
+                  onPress={() => {
+                    let newPassions = [...user.passions];
+                    if (newPassions.includes(item.value)) {
+                      newPassions = newPassions.filter((p) => p !== item.value);
+                    } else {
+                      newPassions.push(item.value);
+                    }
+                    handleInputChange("passions", newPassions);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.promptButtonText,
+                      user.passions.includes(item.value) &&
+                        styles.selectedPromptText,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              )}
+            />
+            {/* Close Button for Modal */}
+            <Pressable
+              onPress={() => setPassionsModalVisible(false)}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal for Adding New Prompt */}
       <Modal visible={isModalVisible} transparent animationType="fade">
         <View style={styles.modalContainer}>
-          <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
+          <View style={[styles.modalContent, { opacity: 1 }]}>
             <Text style={styles.modalTitle}>Choose a Prompt</Text>
             <FlatList
               data={availablePrompts}
@@ -513,7 +597,7 @@ const EditInfoScreen = () => {
               <Button title="Add Prompt" onPress={addPrompt} />
               <Button title="Cancel" onPress={() => setModalVisible(false)} />
             </View>
-          </Animated.View>
+          </View>
         </View>
       </Modal>
     </>
@@ -565,13 +649,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
     backgroundColor: "#FFECEC",
-    // iOS Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    // Android Elevation
-    elevation: 3,
   },
   pickerInput: {
     paddingHorizontal: 15,
@@ -651,8 +728,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    zIndex: 2000, // Ensure modal appears above everything
-    elevation: 2000, // For Android
+    zIndex: 2000,
+    elevation: 2000,
   },
   modalContent: {
     width: "100%",
@@ -660,12 +737,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     alignItems: "center",
-    // iOS Shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    // Android Elevation
     elevation: 5,
   },
   modalTitle: {
@@ -705,8 +780,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    zIndex: 1001, // Ensure it stays above dropdowns
-    elevation: 1001, // For Android
+    zIndex: 1001,
+    elevation: 1001,
   },
   goBackText: {
     color: "#DC143C",
@@ -728,5 +803,29 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
     color: "#2D3748",
+  },
+  selectedZodiacContainer: {
+    backgroundColor: "#FFECEC",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 10,
+  },
+  selectedZodiacText: {
+    fontSize: 16,
+    color: "#2D3748",
+    fontWeight: "bold",
+  },
+  closeButton: {
+    backgroundColor: "#DC143C",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

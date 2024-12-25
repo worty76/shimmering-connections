@@ -10,7 +10,6 @@ import {
   Entypo,
   MaterialIcons,
 } from "@expo/vector-icons";
-import Explore from "./tabs/Explore";
 import bio from "./tabs/bio/BioScreen";
 import profile from "./tabs/profile/LikesScreen";
 import BottomTabs from "./tabs/index";
@@ -33,6 +32,7 @@ import EditInfoScreen from "./tabs/profile/EditInfoScreen";
 import HandleLikeScreen from "./tabs/profile/HandleLikeScreen";
 import EditPhotosScreen from "./tabs/profile/EditPhotoScreen";
 import ChatRoom from "./tabs/chat/ChatRoom";
+import EditPreferencesScreen from "./tabs/profile/EditPreferencesScreen";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -157,6 +157,11 @@ const StackNavigator = () => {
           name="EditPhotosScreen"
           component={EditPhotosScreen}
           options={{ headerShown: false, title: "Edit Photos" }}
+        />
+        <Stack.Screen
+          name="EditPreferencesScreen"
+          component={EditPreferencesScreen}
+          options={{ headerShown: false, title: "Edit Dating References" }}
         />
         <Stack.Screen
           name="ChatRoom"
